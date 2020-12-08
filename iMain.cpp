@@ -9,14 +9,17 @@ Start-Date: 07.12.2020
 #include<bits/stdc++.h>
 using namespace std;
 
+//global variables
+int page_no = 0;
+int screen_width = 1550, screen_height = 800;
+int chicken_speed[3] = {3, 5, 7}, show_chicken[3] = {1, 1, 1};
+
 #include "iGraphics.h"
 #include "GamePage.h"
 
 #define dbg(a) cout<<#a<<" ->->->-> "<<a<<"\n"
 #define GamePageNo 0
 
-int page_no = 0;
-int screen_width = 1550, screen_height = 800;
 
 void iDraw()
 {
