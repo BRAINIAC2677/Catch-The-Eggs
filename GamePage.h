@@ -4,6 +4,14 @@
 
 #define dbg(a) cout<<#a<<" ->->->-> "<<a<<"\n"
 
+typedef struct
+{
+    double x, y;
+}Vector;
+
+Vector AddVector(Vector a, Vector b);
+Vector SubVector(Vector a, Vector b);
+
 typedef struct 
 {
 	double r, g, b;
@@ -17,47 +25,76 @@ typedef struct
 
 typedef struct 
 {
-    double x, y, dx, dy, boundary_X, speed;
+    Vector position, dimension, speed;
+    double boundary_X;
     int show, color;
     char* filename;
+    int egg_lay[50], next_egg;
 } chicken;
 
 typedef struct 
 {
-    double x, y, dx, dy;
+    Vector origin, co_ordinate, dimension, velocity;
+    int color, flock_no;
+}projectile;
+
+
+typedef struct 
+{
+    Vector origin, dimension;
     chicken white, blue, golden;
 } flock;
 
 //global variables
 int basket_X = 780, basket_Y = 100, basket_no = 0; 
-int game_rectX = 400, game_rectY = 50, game_rect_dx = 1100, game_rect_dy = 720;
-int right_buttonX = game_rectX - 60, right_buttonY = game_rectY;
-int left_buttonX = game_rectX - 120, left_buttonY = game_rectY + 2;
+Vector game_origin = {400, 50}, game_dimension = {1100, 720};
+int ground_height = 50;
+Vector right_button_origin = SubVector(game_origin, {60, 0});
+Vector left_button_origin = SubVector(game_origin, {120, -2});
+int scoreboard_X = 70, scoreboard_Y = 400, scoreboard_dx = 300, scoreboard_dy = 370;
+int score = 29,target_score = 300, white_egg_cnt = 0, blue_egg_cnt = 0, golden_egg_cnt = 0;
+int stopwatch_min = 1, stopwatch_sec = 0;
+Vector net_accleration = {0, -.1};
 
 int basket_len[2] = {125, 180};
 char* baskets[2] = {"images/basket1.bmp", "images/basket2.bmp"};
 
+projectile floating_eggs[100];
+int floating_eggs_size = 0, floating_eggs_front = 0;
+
 //colors
+rgb black = {50, 48, 49};
+rgb white = {255, 255, 255};
 rgb sky_blue = {90, 219, 255};
 rgb grass_green = {0, 200, 0};
-rgb red = {208, 0, 0};
+rgb turquoise = {2, 195, 154};
+rgb red1 = {255, 0, 0};
+rgb red2 = {203, 1, 1};
+rgb red3 = {153, 6, 17};
+rgb blue1 = {10, 133, 237};
+rgb blue2 = {12, 99, 231};
+rgb blue3 = {13, 65, 225};
+rgb violet1 = {114, 9, 183};
+rgb violet2 = {86, 11, 173};
+rgb violet3 = {72, 12, 168};
+rgb brown = {255, 182, 0};
+
 
 
 //clouds initialization
-cloud cld_one = {450, 500, 450,game_rectY + 610, 1, "images/cloud.bmp"};
-cloud cld_two = {650, 700, 650,game_rectY + 560, 1, "images/cloud.bmp"};
-cloud cld_three = {1050, 1100, 1050,game_rectY + 610, 1, "images/cloud.bmp"};
+cloud cld_one = {450, 500, 450,game_origin.y + 610, 1, "images/cloud.bmp"};
+cloud cld_two = {650, 700, 650,game_origin.y + 560, 1, "images/cloud.bmp"};
+cloud cld_three = {1050, 1100, 1050,game_origin.y + 610, 1, "images/cloud.bmp"};
 
 
 //chicken initialization
-chicken white_chick = {game_rectX + 100, -1, 84, 91, game_rectX + 800,chicken_speed[0], show_chicken[0], 0, "images/chicken-white.bmp"};
-chicken blue_chick = {game_rectX + 550, -1, 74, 107, game_rectX + 300, chicken_speed[1],show_chicken[1], 1, "images/chicken-blue.bmp"};
-chicken golden_chick = {game_rectX + 1000, -1, 59, 94, game_rectX + 300,chicken_speed[2], show_chicken[2], 2, "images/chicken-golden.bmp"};
+chicken white_chick = {{game_origin.x + 100, -1}, {84, 91}, {chicken_speed[0], 0}, game_origin.x + 800,show_chicken[0], 0, "images/chicken-white.bmp"};
+chicken blue_chick = {{game_origin.x + 550, -1}, {74, 107}, {-1*chicken_speed[1],0}, game_origin.x + 300, show_chicken[1], 1, "images/chicken-blue.bmp"};
+chicken golden_chick = {{game_origin.x + 1000, -1}, {59, 94}, {-1*chicken_speed[2],0}, game_origin.x + 300, show_chicken[2], 2, "images/chicken-golden.bmp"};
 
 //flock initialization
-flock flock_one = {game_rectX, game_rectY + 500, game_rect_dx, 3, white_chick, blue_chick, golden_chick};
-flock flock_two = {game_rectX, game_rectY + 400, game_rect_dx, 3, white_chick, blue_chick, golden_chick};
-
+flock flock_arr[] = {{AddVector(game_origin, {0, 500}),{game_dimension.x, 3}, white_chick, blue_chick, golden_chick},{AddVector(game_origin, {0, 400}), {game_dimension.x, 3}, white_chick, blue_chick, golden_chick}};
+int flock_arr_size = 2;
 
 //function prototypes
 void CloudAnimation(cloud* c);
@@ -66,25 +103,46 @@ void RightShift(int mx, int my);
 void LeftShift(int mx, int my);
 void ChickenDraw(chicken* chick);
 void FlockDraw(flock* fk);
+void GenerateEggLay(chicken* chick, int start, int end, int no_of_egg);
+void ChangeColor(rgb color);
+void ScoreBoardDraw();
+void StopwatchUpdate();
+void PopFrontEgg(projectile arr[], int* size);
+void FloatingEggDraw();
+int ProjectileDraw(projectile* dim);
+int FallingObjectUpdate(projectile* obj);
+int EqualVector(Vector a, Vector b);
+
+int ck = 1; //test
 
 void GamePage()
 {
     iShowBMP(0, 0, "images/sky_bg.bmp");
+    
+	if(ck)
+    {
+        ck = 0;
+        for(int j = 0; j < 2; j++)
+        {
+            GenerateEggLay(&flock_arr[j].white, 0, 59, 30);
+            GenerateEggLay(&flock_arr[j].blue, 0, 59, 30);
+            GenerateEggLay(&flock_arr[j].golden, 0, 59, 30);
+        }
+    }//testing purpose
 
-	
-	iSetColor(sky_blue.r, sky_blue.g, sky_blue.b); //game_sec
-	iFilledRectangle(game_rectX, game_rectY, game_rect_dx, game_rect_dy);
 
-	iSetColor(grass_green.r, grass_green.g, grass_green.b);
-	iFilledRectangle(game_rectX, game_rectY, game_rect_dx, 50);
+	ChangeColor(sky_blue); //game_sec
+	iFilledRectangle(game_origin.x,game_origin.y, game_dimension.x, game_dimension.y);
+
+	ChangeColor(grass_green);
+	iFilledRectangle(game_origin.x,game_origin.y, game_dimension.x, ground_height);
 
 	iShowBMP2(basket_X, basket_Y, baskets[basket_no], 0xFFFFFF);
 
-    iShowBMP2(left_buttonX, left_buttonY, "images/left-arrow.bmp", 0xFFFFFF);
-    iShowBMP2(right_buttonX, right_buttonY, "images/right-arrow.bmp", 0xFFFFFF);
+    iShowBMP2(left_button_origin.x, left_button_origin.y, "images/left-arrow.bmp", 0xFFFFFF);
+    iShowBMP2(right_button_origin.x, right_button_origin.y, "images/right-arrow.bmp", 0xFFFFFF);
 
-	iSetColor(red.r, red.g, red.b); //info_sec
-	iFilledRectangle(50, 400, 300, 370);
+    ScoreBoardDraw();
 	 
     //animated clouds
 	iShowBMP2(cld_one.x ,cld_one.y, cld_one.filename, 0);
@@ -97,8 +155,15 @@ void GamePage()
 	CloudAnimation(&cld_three);
     //end of animated clouds
 
-    FlockDraw(&flock_one);
-    FlockDraw(&flock_two);
+    FloatingEggDraw();
+
+    for(int i = 0;i< 2; i++)
+    {
+        flock_arr[i].white.position.y = flock_arr[i].blue.position.y = flock_arr[i].golden.position.y = flock_arr[i].origin.y;
+        FlockDraw(&flock_arr[i]);
+    }
+ 
+
 }
 
 void CloudAnimation(cloud *c)
@@ -130,14 +195,14 @@ void BasketMove(int flag)
 //basket rightshift
 void RightShift(int mx, int my)
 {
-    if(mx >= right_buttonX && mx <= right_buttonX + 50 && my >= right_buttonY && my <= right_buttonY + 50)
+    if(mx >= right_button_origin.x && mx <= right_button_origin.x + 50 && my >= right_button_origin.y && my <= right_button_origin.y + 50)
         BasketMove(1);
 }
 
 //basket leftshift
 void LeftShift(int mx, int my)
 {
-    if(mx >= left_buttonX && mx <= left_buttonX + 50 && my >= left_buttonY && my <= left_buttonY + 50)
+    if(mx >= left_button_origin.x && mx <= left_button_origin.x + 50 && my >= left_button_origin.y && my <= left_button_origin.y + 50)
         BasketMove(-1);
 }
 
@@ -145,24 +210,29 @@ void ChickenDraw(chicken* chick)
 {
     if(!chick->show)
         return;
-    iShowBMP2(chick->x, chick->y, chick->filename, 0XFFFFFF);
+    iShowBMP2(chick->position.x, chick->position.y, chick->filename, 0XFFFFFF);
 
     //motion update
-    if(chick->boundary_X > chick->x)
+    chick->position.x += chick->speed.x;
+    if(chick->speed.x > 0)
     {
-        chick->x += chick->speed;
-        if(chick->x > chick->boundary_X)
-            chick->x = chick->boundary_X;
-    }
-    else if(chick->boundary_X < chick->x)
-    {
-        chick->x -= chick->speed;
-        if(chick->x < chick->boundary_X)
-            chick->x = chick->boundary_X;
+        if(chick->position.x > chick->boundary_X)
+            chick->position.x = chick->boundary_X;
     }
     else
+    {
+        if(chick->position.x < chick->boundary_X)
+            chick->position.x = chick->boundary_X;
+    }
+    
+    if(chick->position.x == chick->boundary_X)
     { 
-        chick->boundary_X = game_rectX + (int)rand()%(int)(game_rect_dx - chick->dx);
+        chick->boundary_X = game_origin.x + (int)rand()%(int)(game_dimension.x - chick->dimension.x);
+        if(chick->position.x < chick->boundary_X)
+            chick->speed.x = fabs(chick->speed.x);
+        else
+            chick->speed.x = -fabs(chick->speed.x);
+        
     }
 
 }
@@ -170,13 +240,226 @@ void ChickenDraw(chicken* chick)
 void FlockDraw(flock* fk)
 {
     iSetColor(0, 0, 0);
-    iFilledRectangle(fk->x, fk->y, fk->dx, fk->dy);
+    iFilledRectangle(fk->origin.x, fk->origin.y, fk->dimension.x, fk->dimension.y);
 
-    fk->white.y = fk->blue.y = fk->golden.y = fk->y;
     ChickenDraw(&fk->white);
     ChickenDraw(&fk->blue);
     ChickenDraw(&fk->golden);
 }
 
+void GenerateEggLay(chicken* chick, int start, int end, int no_of_egg)
+{
+    chick->egg_lay[no_of_egg] = -1; //indicate the end of the eggs
+
+    int check_duplicate[end-start+10] = {0};
+    for(int i = 0; i< no_of_egg; i++)
+    {
+        int random = (int)rand()%(end - start+1);
+        while(check_duplicate[random])
+            random = (int)rand()%(end - start+1);
+
+        check_duplicate[random] = 1;
+        chick->egg_lay[i] = start + random;
+    }
+
+    for(int pos = no_of_egg - 1; pos; pos--)
+    {
+        int mini_ind = 0;
+        for(int j = 0; j <= pos; j++)
+            if(chick->egg_lay[j] < chick->egg_lay[mini_ind])
+                mini_ind = j;
+        
+        int temp = chick->egg_lay[mini_ind];
+        chick->egg_lay[mini_ind] = chick->egg_lay[pos];
+        chick->egg_lay[pos] = temp;
+    }
+
+}
+
+void ChangeColor(rgb color)
+{
+    iSetColor(color.r, color.g, color.b);
+}
+
+
+void ScoreBoardDraw()
+{
+    ChangeColor(black);
+    iFilledRectangle(scoreboard_X, scoreboard_Y, scoreboard_dx, scoreboard_dy);
+
+    int low_cell = 110, mid_cell = 210,high_cell = 300, horizontal_padding = 20, vertical_padding = 30;
+    
+    ChangeColor(red1);
+    iLine(scoreboard_X + horizontal_padding, scoreboard_Y + low_cell, scoreboard_X + scoreboard_dx - horizontal_padding, scoreboard_Y + low_cell);
+    iLine(scoreboard_X + horizontal_padding, scoreboard_Y + mid_cell, scoreboard_X + scoreboard_dx - horizontal_padding, scoreboard_Y + mid_cell);
+    iLine(scoreboard_X + horizontal_padding, scoreboard_Y + high_cell, scoreboard_X + scoreboard_dx - horizontal_padding, scoreboard_Y + high_cell);
+    
+    ChangeColor(turquoise);
+    iText(scoreboard_X + horizontal_padding, scoreboard_Y + high_cell + vertical_padding, "SCORE-BOARD", GLUT_BITMAP_TIMES_ROMAN_24);
+
+    ChangeColor(red1);
+    char score_str[20], target_score_str[20];
+    sprintf(score_str, "SCORE: %d", score);
+    sprintf(target_score_str, "TARGET: %d", target_score);
+    iText(scoreboard_X + horizontal_padding, scoreboard_Y + high_cell - vertical_padding, score_str, GLUT_BITMAP_HELVETICA_18);
+    iText(scoreboard_X + horizontal_padding, scoreboard_Y + high_cell - 2*vertical_padding, target_score_str, GLUT_BITMAP_HELVETICA_18);
+    
+    char stopwatch_str[20];
+    sprintf(stopwatch_str, "TIME: %02d : %02d", stopwatch_min, stopwatch_sec);
+    iText(scoreboard_X + horizontal_padding, scoreboard_Y + low_cell - vertical_padding, stopwatch_str, GLUT_BITMAP_HELVETICA_18);
+
+    iText(scoreboard_X + horizontal_padding, scoreboard_Y + mid_cell - vertical_padding, "WHITE        BLUE      GOLDEN", GLUT_BITMAP_HELVETICA_18);
+    char egg_cnt_str[50];
+    sprintf(egg_cnt_str, "     %d            %d            %d", white_egg_cnt, blue_egg_cnt, golden_egg_cnt);
+    iText(scoreboard_X + horizontal_padding, scoreboard_Y + mid_cell - vertical_padding - 35, egg_cnt_str, GLUT_BITMAP_TIMES_ROMAN_24);
+}
+
+void StopwatchUpdate()
+{
+    if(!stopwatch_min && !stopwatch_sec)
+    {
+        //game over code
+        return;
+    }
+
+    if(stopwatch_sec)
+        stopwatch_sec--;
+    else
+    {
+        stopwatch_min--;
+        stopwatch_sec = 59;    
+    }
+
+    //adding eggs laid by the chickens
+    int time_in_sec = stopwatch_min*60 + stopwatch_sec;
+
+    for(int i = 0; i < flock_arr_size; i++)
+    {
+
+        if(flock_arr[i].white.egg_lay[flock_arr[i].white.next_egg] == time_in_sec)
+        {
+            flock_arr[i].white.next_egg++;
+            floating_eggs[floating_eggs_size++] = {.origin = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].white.speed,.color = flock_arr[i].white.color};            
+        }
+
+
+        if(flock_arr[i].blue.egg_lay[flock_arr[i].blue.next_egg] == time_in_sec)
+        {
+            flock_arr[i].blue.next_egg++;
+            floating_eggs[floating_eggs_size++] = {.origin = AddVector(flock_arr[i].blue.position, {flock_arr[i].blue.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].blue.position, {flock_arr[i].blue.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].blue.speed,.color = flock_arr[i].blue.color};            
+        }
+
+        if(flock_arr[i].golden.egg_lay[flock_arr[i].golden.next_egg] == time_in_sec)
+        {
+            flock_arr[i].golden.next_egg++;
+            floating_eggs[floating_eggs_size++] = {.origin = AddVector(flock_arr[i].golden.position, {flock_arr[i].golden.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].golden.position, {flock_arr[i].golden.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].golden.speed,.color = flock_arr[i].golden.color};
+        }
+    }
+}
+
+void PopFrontEgg(projectile arr[], int* size, int ind)
+{
+    if(size == 0)
+        return;
+    
+    for(int i = ind+1; i < *size; i++)
+        arr[i-1] = arr[i];
+    
+    (*size)--;
+}
+
+void FloatingEggDraw()
+{
+    int rmv[50], next = 0;
+
+    for(int i = 0; i< floating_eggs_size; i++)
+    {
+        if(ProjectileDraw(&floating_eggs[i]))
+        {
+            rmv[next++] = i;
+        }
+    }
+
+    //sorting rmv
+    for(int i = 0; i< next-1; i++)
+    {
+        int mini_ind = i;
+        for(int j = i+1; j < next; j++)
+            if(rmv[j] < rmv[mini_ind])
+                mini_ind = j;
+
+        int temp = rmv[i];
+        rmv[i] = rmv[mini_ind];
+        rmv[mini_ind] = temp;
+    }
+    
+    for(int i = 0;i< next; i++)
+        PopFrontEgg(floating_eggs, &floating_eggs_size, rmv[i] - i);
+    
+    /* floating_eggs_front += rmv; */
+/*     dbg(floating_eggs_front);
+    dbg(floating_eggs_size); */
+}
+
+int ProjectileDraw(projectile* obj)
+{
+    int res = 0;
+
+    if(obj->color < 3)
+    {
+        ChangeColor(black);
+        iFilledEllipse(obj->co_ordinate.x, obj->co_ordinate.y, obj->dimension.x+1, obj->dimension.y+1);
+        
+        if(obj->color == 0)
+            ChangeColor(white);
+        else if(obj->color==1)
+            ChangeColor(blue1);
+        else
+            ChangeColor(brown);
+
+        iFilledEllipse(obj->co_ordinate.x, obj->co_ordinate.y, obj->dimension.x, obj->dimension.y);
+        res = FallingObjectUpdate(obj);
+    }
+    else
+    {
+        //other projectile
+    }
+    
+    
+    return res;
+}
+
+int FallingObjectUpdate(projectile* obj)
+{
+    obj->velocity = AddVector(obj->velocity, net_accleration);
+    obj->co_ordinate = AddVector(obj->co_ordinate, obj->velocity);
+
+
+    int ret = 0;
+    obj->origin = AddVector(obj->origin, obj->co_ordinate);
+    if(obj->co_ordinate.y <= game_origin.y + ground_height)
+    {
+        ret = 1;
+    }
+    else if(obj->co_ordinate.x <= game_origin.x || obj->co_ordinate.x >= game_origin.x + game_dimension.x)
+        obj->velocity.x*= -1;
+
+    return ret;
+}
+
+Vector AddVector(Vector a, Vector b)
+{
+    return {a.x + b.x, a.y + b.y};
+}
+
+Vector SubVector(Vector a, Vector b)
+{
+    return {a.x - b.x , a.y - b.y};
+}
+
+int EqualVector(Vector a, Vector b)
+{
+    return (a.x == b.x && a.y == b.y);
+}
 
 #endif // FF_H_INCLUDED

@@ -28,6 +28,7 @@ void iDraw()
 	
 	if(page_no == GamePageNo)
 		GamePage();
+	
 }
 
 
@@ -101,6 +102,7 @@ void iSpecialKeyboard(unsigned char key)
 int main()
 {
     //place your own initialization codes here.
+	iSetTimer(1000, StopwatchUpdate); //No. 1 for stopwatch
     iInitialize(screen_width, screen_height, "Murga!");
     return 0;
 }
