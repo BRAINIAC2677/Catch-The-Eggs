@@ -4,13 +4,7 @@
 
 #define dbg(a) cout<<#a<<" ->->->-> "<<a<<"\n"
 
-typedef struct
-{
-    double x, y;
-}Vector;
 
-Vector AddVector(Vector a, Vector b);
-Vector SubVector(Vector a, Vector b);
 
 typedef struct 
 {
@@ -45,19 +39,31 @@ typedef struct
     chicken white, blue, golden;
 } flock;
 
+
+typedef struct 
+{
+    Vector dimension;
+    char* filename;
+}basket;
+
+
+
 //global variables
-int basket_X = 780, basket_Y = 100, basket_no = 0; 
 Vector game_origin = {400, 50}, game_dimension = {1100, 720};
 int ground_height = 50;
+Vector basket_origin = AddVector(game_origin, {game_dimension.x/2, ground_height}), basket_speed = {12, 0};
+int basket_no = 0;  
 Vector right_button_origin = SubVector(game_origin, {60, 0});
 Vector left_button_origin = SubVector(game_origin, {120, -2});
 int scoreboard_X = 70, scoreboard_Y = 400, scoreboard_dx = 300, scoreboard_dy = 370;
-int score = 29,target_score = 300, white_egg_cnt = 0, blue_egg_cnt = 0, golden_egg_cnt = 0;
-int stopwatch_min = 1, stopwatch_sec = 0;
+int score = 0,target_score = 300;
+int white_egg_cnt = 0, blue_egg_cnt = 0, golden_egg_cnt = 0;
+int white_egg_point = 5, blue_egg_point = 10, golden_egg_point = 15;
+int stopwatch_min = 0, stopwatch_sec = 0, stopwatch_end_min = 1, stopwatch_end_sec = 0;
 Vector net_accleration = {0, -.1};
 
-int basket_len[2] = {125, 180};
-char* baskets[2] = {"images/basket1.bmp", "images/basket2.bmp"};
+/* int basket_len[2] = {125, 180};
+char* baskets[2] = {"images/basket1.bmp", "images/basket2.bmp"}; */
 
 projectile floating_eggs[100];
 int floating_eggs_size = 0, floating_eggs_front = 0;
@@ -93,17 +99,23 @@ chicken blue_chick = {{game_origin.x + 550, -1}, {74, 107}, {-1*chicken_speed[1]
 chicken golden_chick = {{game_origin.x + 1000, -1}, {59, 94}, {-1*chicken_speed[2],0}, game_origin.x + 300, show_chicken[2], 2, "images/chicken-golden.bmp"};
 
 //flock initialization
-flock flock_arr[] = {{AddVector(game_origin, {0, 500}),{game_dimension.x, 3}, white_chick, blue_chick, golden_chick},{AddVector(game_origin, {0, 400}), {game_dimension.x, 3}, white_chick, blue_chick, golden_chick}};
+flock flock_arr[] = {{AddVector(game_origin, {0, 500}),{game_dimension.x, 3},white_chick, blue_chick, golden_chick},
+{AddVector(game_origin, {0, 400}), {game_dimension.x, 3}, white_chick, blue_chick, golden_chick}};
 int flock_arr_size = 2;
+
+//basket initialization
+basket basket_arr[] = {{{115, 60},"images/basket10.bmp"},
+{{180, 161}, "images/basket11.bmp"}};
 
 //function prototypes
 void CloudAnimation(cloud* c);
 void BasketMove(int flag);
+void BasketDraw(basket jhuri);
 void RightShift(int mx, int my);
 void LeftShift(int mx, int my);
 void ChickenDraw(chicken* chick);
 void FlockDraw(flock* fk);
-void GenerateEggLay(chicken* chick, int start, int end, int no_of_egg);
+void GenerateRandom(int arr[], int start, int end, int no_of_rand);
 void ChangeColor(rgb color);
 void ScoreBoardDraw();
 void StopwatchUpdate();
@@ -111,22 +123,21 @@ void PopFrontEgg(projectile arr[], int* size);
 void FloatingEggDraw();
 int ProjectileDraw(projectile* dim);
 int FallingObjectUpdate(projectile* obj);
-int EqualVector(Vector a, Vector b);
+
 
 int ck = 1; //test
 
 void GamePage()
 {
     iShowBMP(0, 0, "images/sky_bg.bmp");
-    
-	if(ck)
+    if(ck)
     {
         ck = 0;
         for(int j = 0; j < 2; j++)
         {
-            GenerateEggLay(&flock_arr[j].white, 0, 59, 30);
-            GenerateEggLay(&flock_arr[j].blue, 0, 59, 30);
-            GenerateEggLay(&flock_arr[j].golden, 0, 59, 30);
+            GenerateRandom(flock_arr[j].white.egg_lay, 0, 59, 30);
+            GenerateRandom(flock_arr[j].blue.egg_lay, 0, 59, 30);
+            GenerateRandom(flock_arr[j].golden.egg_lay, 0, 59, 30);
         }
     }//testing purpose
 
@@ -137,7 +148,7 @@ void GamePage()
 	ChangeColor(grass_green);
 	iFilledRectangle(game_origin.x,game_origin.y, game_dimension.x, ground_height);
 
-	iShowBMP2(basket_X, basket_Y, baskets[basket_no], 0xFFFFFF);
+	BasketDraw(basket_arr[basket_no]);
 
     iShowBMP2(left_button_origin.x, left_button_origin.y, "images/left-arrow.bmp", 0xFFFFFF);
     iShowBMP2(right_button_origin.x, right_button_origin.y, "images/right-arrow.bmp", 0xFFFFFF);
@@ -175,21 +186,25 @@ void CloudAnimation(cloud *c)
 
 void BasketMove(int flag)
 {
-    int basket_speed = 8;
     if(flag == 1)
     {
-        basket_X += basket_speed;
-        int end_offset = basket_len[basket_no];
-        if(basket_X > 1500 - end_offset)
-            basket_X = 1500 - end_offset;
+        basket_origin = AddVector(basket_origin, basket_speed);
+        int end_offset = basket_arr[basket_no].dimension.x;
+        if(basket_origin.x > game_origin.x + game_dimension.x - end_offset)
+            basket_origin.x = game_origin.x + game_dimension.x - end_offset;
     }
 
     else
     {
-        basket_X -= basket_speed;
-        if(basket_X < 390)
-            basket_X = 390;
+        basket_origin = SubVector(basket_origin, basket_speed);
+        if(basket_origin.x < game_origin.x)
+            basket_origin.x = game_origin.x;
     }
+}
+
+void BasketDraw(basket jhuri)
+{
+    iShowBMP2(basket_origin.x, basket_origin.y, jhuri.filename, 0xFFFFFF);
 }
 
 //basket rightshift
@@ -247,31 +262,31 @@ void FlockDraw(flock* fk)
     ChickenDraw(&fk->golden);
 }
 
-void GenerateEggLay(chicken* chick, int start, int end, int no_of_egg)
+void GenerateRandom(int arr[], int start, int end, int no_of_rand)
 {
-    chick->egg_lay[no_of_egg] = -1; //indicate the end of the eggs
+    arr[no_of_rand] = -1; //indicate the end of the eggs
 
     int check_duplicate[end-start+10] = {0};
-    for(int i = 0; i< no_of_egg; i++)
+    for(int i = 0; i< no_of_rand; i++)
     {
         int random = (int)rand()%(end - start+1);
         while(check_duplicate[random])
             random = (int)rand()%(end - start+1);
 
         check_duplicate[random] = 1;
-        chick->egg_lay[i] = start + random;
+        arr[i] = start + random;
     }
 
-    for(int pos = no_of_egg - 1; pos; pos--)
+    for(int pos = no_of_rand - 1; pos; pos--)
     {
-        int mini_ind = 0;
+        int maxi_ind = 0;
         for(int j = 0; j <= pos; j++)
-            if(chick->egg_lay[j] < chick->egg_lay[mini_ind])
-                mini_ind = j;
+            if(arr[j] > arr[maxi_ind])
+                maxi_ind = j;
         
-        int temp = chick->egg_lay[mini_ind];
-        chick->egg_lay[mini_ind] = chick->egg_lay[pos];
-        chick->egg_lay[pos] = temp;
+        int temp = arr[maxi_ind];
+        arr[maxi_ind] = arr[pos];
+        arr[pos] = temp;
     }
 
 }
@@ -316,7 +331,7 @@ void ScoreBoardDraw()
 
 void StopwatchUpdate()
 {
-    if(!stopwatch_min && !stopwatch_sec)
+/*     if(!stopwatch_min && !stopwatch_sec)
     {
         //game over code
         return;
@@ -328,6 +343,19 @@ void StopwatchUpdate()
     {
         stopwatch_min--;
         stopwatch_sec = 59;    
+    } */
+
+    if(stopwatch_min == stopwatch_end_min && stopwatch_sec == stopwatch_end_sec)
+    {
+        //game over code
+        return;
+    }
+
+    stopwatch_sec++;
+    if(stopwatch_sec == 60)
+    {
+        stopwatch_sec = 0;
+        stopwatch_min++;
     }
 
     //adding eggs laid by the chickens
@@ -431,13 +459,25 @@ int ProjectileDraw(projectile* obj)
 
 int FallingObjectUpdate(projectile* obj)
 {
+    double prev_Y = obj->co_ordinate.y;
     obj->velocity = AddVector(obj->velocity, net_accleration);
     obj->co_ordinate = AddVector(obj->co_ordinate, obj->velocity);
 
 
     int ret = 0;
-    obj->origin = AddVector(obj->origin, obj->co_ordinate);
-    if(obj->co_ordinate.y <= game_origin.y + ground_height)
+   /*  obj->origin = AddVector(obj->origin, obj->co_ordinate); */
+    if(obj->co_ordinate.x >= basket_origin.x && obj->co_ordinate.x <= basket_origin.x + basket_arr[basket_no].dimension.x && prev_Y >= basket_origin.y + basket_arr[basket_no].dimension.y && obj->co_ordinate.y <= basket_origin.y + basket_arr[basket_no].dimension.y)
+    {
+        ret = 1;
+        if(obj->color == 0)
+            white_egg_cnt++;
+        else if(obj->color == 1)
+            blue_egg_cnt++;
+        else if(obj->color == 2)
+            golden_egg_cnt++;
+        score = white_egg_cnt*white_egg_point + blue_egg_cnt*blue_egg_point + golden_egg_cnt*golden_egg_point;
+    }
+    else if(obj->co_ordinate.y <= game_origin.y + ground_height)
     {
         ret = 1;
     }
@@ -447,19 +487,9 @@ int FallingObjectUpdate(projectile* obj)
     return ret;
 }
 
-Vector AddVector(Vector a, Vector b)
-{
-    return {a.x + b.x, a.y + b.y};
-}
 
-Vector SubVector(Vector a, Vector b)
-{
-    return {a.x - b.x , a.y - b.y};
-}
 
-int EqualVector(Vector a, Vector b)
-{
-    return (a.x == b.x && a.y == b.y);
-}
+
+
 
 #endif // FF_H_INCLUDED

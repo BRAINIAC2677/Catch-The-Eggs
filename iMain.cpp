@@ -9,16 +9,43 @@ Start-Date: 07.12.2020
 #include<bits/stdc++.h>
 using namespace std;
 
+typedef struct
+{
+    double x, y;
+}Vector;
+
+Vector AddVector(Vector a, Vector b);
+Vector SubVector(Vector a, Vector b);
+int EqualVector(Vector a, Vector b);
+
 //global variables
-int page_no = 0;
+int page_no = 1;
 int screen_width = 1550, screen_height = 800;
 int chicken_speed[3] = {3, 5, 7}, show_chicken[3] = {1, 1, 1};
 
+//HomePage Variables
+
+
+
 #include "iGraphics.h"
 #include "GamePage.h"
+#include "HomePage.h"
 
 #define dbg(a) cout<<#a<<" ->->->-> "<<a<<"\n"
 #define GamePageNo 0
+#define HomePageNo 1
+
+void ButtonActive(int x, int y)
+{
+	y = screen_height - y;
+	for(int i = 0; i< sizeof(button_arr)/sizeof(button); i++)
+	{
+		button_arr[i].active = 0;
+		if(button_arr[i].page_no == page_no && x >= button_arr[i].origin.x && x <= button_arr[i].origin.x + button_arr[i].dimension.x && y >= button_arr[i].origin.y && y <= button_arr[i].origin.y + button_arr[i].dimension.y)
+			button_arr[i].active = 1;
+	}
+	/* printf("x: %d y: %d\n", x, y); */
+}
 
 
 void iDraw()
@@ -28,6 +55,10 @@ void iDraw()
 	
 	if(page_no == GamePageNo)
 		GamePage();
+	else if(page_no == HomePageNo)
+		HomePage();
+
+	glutPassiveMotionFunc(ButtonActive);
 	
 }
 
@@ -97,11 +128,27 @@ void iSpecialKeyboard(unsigned char key)
 	}
 }
 
+int EqualVector(Vector a, Vector b)
+{
+    return (a.x == b.x && a.y == b.y);
+}
+
+Vector SubVector(Vector a, Vector b)
+{
+    return {a.x - b.x , a.y - b.y};
+}
+
+Vector AddVector(Vector a, Vector b)
+{
+    return {a.x + b.x, a.y + b.y};
+}
+
 
 
 int main()
 {
     //place your own initialization codes here.
+	
 	iSetTimer(1000, StopwatchUpdate); //No. 1 for stopwatch
     iInitialize(screen_width, screen_height, "Murga!");
     return 0;
