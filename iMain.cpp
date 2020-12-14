@@ -19,12 +19,16 @@ Vector SubVector(Vector a, Vector b);
 int EqualVector(Vector a, Vector b);
 
 //global variables
-int page_no = 1;
+int page_no = 4;
 int screen_width = 1550, screen_height = 800;
 int chicken_speed[3] = {3, 5, 7}, show_chicken[3] = {1, 1, 1};
 
 //HomePage Variables
-
+#define GamePageNo 0
+#define HomePageNo 1
+#define LoginPageNo 2
+#define SignUpPageNo 3
+#define LoginInfoNo 4
 
 
 #include "iGraphics.h"
@@ -32,8 +36,7 @@ int chicken_speed[3] = {3, 5, 7}, show_chicken[3] = {1, 1, 1};
 #include "HomePage.h"
 
 #define dbg(a) cout<<#a<<" ->->->-> "<<a<<"\n"
-#define GamePageNo 0
-#define HomePageNo 1
+
 
 void ButtonActive(int x, int y)
 {
@@ -57,7 +60,12 @@ void iDraw()
 		GamePage();
 	else if(page_no == HomePageNo)
 		HomePage();
-
+	else if(page_no == LoginPageNo)
+		LoginPage();
+	else if(page_no == SignUpPageNo)
+		SignUp();
+	else if(page_no == LoginInfoNo)
+		LoginInfo();
 	glutPassiveMotionFunc(ButtonActive);
 	
 }
@@ -87,6 +95,25 @@ void iMouse(int button, int state, int mx, int my)
 			RightShift(mx, my);
 			LeftShift(mx, my);
 		}
+
+		for(int i = 0; i< sizeof(placeholder_arr)/sizeof(placeholder_arr[0]); i++)
+		{
+			placeholder_arr[i].active = 0;
+			if(page_no == placeholder_arr[i].page_no && mx >= placeholder_arr[i].origin.x && mx <= placeholder_arr[i].origin.x + placeholder_arr[i].dimension.x && my >= placeholder_arr[i].origin.y && my <= placeholder_arr[i].origin.y + placeholder_arr[i].dimension.y)
+			{
+				placeholder_arr[i].active = 1;
+			}
+		}
+
+/* 		for(int i = 0; i< sizeof(button_arr)/sizeof(button_arr[0]); i++)
+		{
+			if(button_arr[i].page_no != page_no)
+				continue;
+			if(mx >= button_arr[i].origin.x && mx <= button_arr[i].origin.x + button_arr[i].dimension.x && my >= button_arr[i].origin.y && my <= button_arr[i].origin.y + button_arr[i].dimension.y)
+			{
+				button_arr[i].fun();
+			}			
+		} */
 	}
 }
 
@@ -96,6 +123,13 @@ void iMouse(int button, int state, int mx, int my)
 */
 void iKeyboard(unsigned char key)
 {
+	for(int i = 0; i< sizeof(placeholder_arr)/sizeof(placeholder_arr[0]); i++)
+	{
+		if(page_no == placeholder_arr[i].page_no && placeholder_arr[i].active == 1)
+		{
+			placeholder_arr[i].input[placeholder_arr[i].next_input++] = key;
+		}
+	}
 
     //place your codes for other keys here
 }

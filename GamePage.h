@@ -71,6 +71,7 @@ int floating_eggs_size = 0, floating_eggs_front = 0;
 //colors
 rgb black = {50, 48, 49};
 rgb white = {255, 255, 255};
+rgb white2 = {248, 249, 250};
 rgb sky_blue = {90, 219, 255};
 rgb grass_green = {0, 200, 0};
 rgb turquoise = {2, 195, 154};
