@@ -18,10 +18,16 @@ Vector AddVector(Vector a, Vector b);
 Vector SubVector(Vector a, Vector b);
 int EqualVector(Vector a, Vector b);
 
+
+
 //global variables
-int page_no = 4;
+int page_no = 6, prompt_show = 0;
 int screen_width = 1550, screen_height = 800;
-int chicken_speed[3] = {3, 5, 7}, show_chicken[3] = {1, 1, 1};
+int chicken_speed[] = {3, 5, 7};
+
+
+
+
 
 //HomePage Variables
 #define GamePageNo 0
@@ -29,6 +35,11 @@ int chicken_speed[3] = {3, 5, 7}, show_chicken[3] = {1, 1, 1};
 #define LoginPageNo 2
 #define SignUpPageNo 3
 #define LoginInfoNo 4
+#define LevelPageNo 5
+#define IntroNo 6
+#define PromptNo -1
+
+
 
 
 #include "iGraphics.h"
@@ -44,7 +55,7 @@ void ButtonActive(int x, int y)
 	for(int i = 0; i< sizeof(button_arr)/sizeof(button); i++)
 	{
 		button_arr[i].active = 0;
-		if(button_arr[i].page_no == page_no && x >= button_arr[i].origin.x && x <= button_arr[i].origin.x + button_arr[i].dimension.x && y >= button_arr[i].origin.y && y <= button_arr[i].origin.y + button_arr[i].dimension.y)
+		if((button_arr[i].page_no == page_no || prompt_show == PromptNo )&& x >= button_arr[i].origin.x && x <= button_arr[i].origin.x + button_arr[i].dimension.x && y >= button_arr[i].origin.y && y <= button_arr[i].origin.y + button_arr[i].dimension.y)
 			button_arr[i].active = 1;
 	}
 	/* printf("x: %d y: %d\n", x, y); */
@@ -66,6 +77,13 @@ void iDraw()
 		SignUp();
 	else if(page_no == LoginInfoNo)
 		LoginInfo();
+	else if(page_no == LevelPageNo)
+		LevelPage();
+	else if(page_no == IntroNo)
+		Intro();
+
+	if(prompt_show == PromptNo)
+		Prompt();
 	glutPassiveMotionFunc(ButtonActive);
 	
 }
@@ -105,15 +123,14 @@ void iMouse(int button, int state, int mx, int my)
 			}
 		}
 
-/* 		for(int i = 0; i< sizeof(button_arr)/sizeof(button_arr[0]); i++)
+		for(int i = 0; i< sizeof(button_arr)/sizeof(button_arr[0]); i++)
 		{
-			if(button_arr[i].page_no != page_no)
-				continue;
 			if(mx >= button_arr[i].origin.x && mx <= button_arr[i].origin.x + button_arr[i].dimension.x && my >= button_arr[i].origin.y && my <= button_arr[i].origin.y + button_arr[i].dimension.y)
 			{
-				button_arr[i].fun();
+				if(button_arr[i].page_no == page_no || (i == 16 && prompt_show == PromptNo))
+					button_arr[i].function_pointer();
 			}			
-		} */
+		}
 	}
 }
 
@@ -177,13 +194,21 @@ Vector AddVector(Vector a, Vector b)
     return {a.x + b.x, a.y + b.y};
 }
 
-
+void Introcng()
+{
+	page_no = LoginPageNo;
+	iPauseTimer(1);
+}
 
 int main()
 {
     //place your own initialization codes here.
 	
 	iSetTimer(1000, StopwatchUpdate); //No. 1 for stopwatch
+	iPauseTimer(0);
+
+	iSetTimer(4000, Introcng); //No 2 for intro
+
     iInitialize(screen_width, screen_height, "Murga!");
     return 0;
 }

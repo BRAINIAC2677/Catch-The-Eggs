@@ -23,7 +23,7 @@ typedef struct
     double boundary_X;
     int show, color;
     char* filename;
-    int egg_lay[50], next_egg;
+    int egg_lay[50],shit_lay[50], next_shit, next_egg, no_of_egg;
 } chicken;
 
 typedef struct 
@@ -47,26 +47,47 @@ typedef struct
 }basket;
 
 
+#define shit_color 3
+#define basket_speed_perks_color 4
+#define basket_size_perks_color 5
+#define extra_time_perks_color 6
+
 
 //global variables
 Vector game_origin = {400, 50}, game_dimension = {1100, 720};
 int ground_height = 50;
-Vector basket_origin = AddVector(game_origin, {game_dimension.x/2, ground_height}), basket_speed = {12, 0};
+Vector basket_origin = AddVector(game_origin, {game_dimension.x/2, ground_height}), basket_speed = {15, 0};
 int basket_no = 0;  
 Vector right_button_origin = SubVector(game_origin, {60, 0});
 Vector left_button_origin = SubVector(game_origin, {120, -2});
 int scoreboard_X = 70, scoreboard_Y = 400, scoreboard_dx = 300, scoreboard_dy = 370;
 int score = 0,target_score = 300;
-int white_egg_cnt = 0, blue_egg_cnt = 0, golden_egg_cnt = 0;
-int white_egg_point = 5, blue_egg_point = 10, golden_egg_point = 15;
+int white_egg_cnt = 0, blue_egg_cnt = 0, golden_egg_cnt = 0, shit_cnt = 0;
+int white_egg_point = 5, blue_egg_point = 10, golden_egg_point = 20, shit_point = 5;
 int stopwatch_min = 0, stopwatch_sec = 0, stopwatch_end_min = 1, stopwatch_end_sec = 0;
 Vector net_accleration = {0, -.1};
 
 /* int basket_len[2] = {125, 180};
 char* baskets[2] = {"images/basket1.bmp", "images/basket2.bmp"}; */
 
-projectile floating_eggs[100];
-int floating_eggs_size = 0, floating_eggs_front = 0;
+projectile floating_object[200];
+int floating_objects_size = 0;
+
+//perks
+int basket_speed_perks_arr[30], basket_speed_next_perks = 0, basket_speed_no_of_perks = 10, basket_speed_perks_active = 0; 
+int extra_time_perks_arr[30], extra_time_next_perks = 0, extra_time_no_of_perks = 5; 
+int basket_size_perks_arr[30], basket_size_next_perks = 0, basket_size_no_of_perks = 10, basket_size_perks_active = 0; 
+
+//top scores
+char toppers[15][35];
+int top_scores[15], top_nxt = 0;
+
+//profile_data
+char profile_data[1000][35];
+int  next_profile_data = -1, loggedin_profile = -1;
+
+//prompt text
+char prompt_text[1000];
 
 //colors
 rgb black = {50, 48, 49};
@@ -85,6 +106,7 @@ rgb violet1 = {114, 9, 183};
 rgb violet2 = {86, 11, 173};
 rgb violet3 = {72, 12, 168};
 rgb brown = {255, 182, 0};
+rgb yellow1 = {254, 228, 64};
 
 
 
@@ -95,9 +117,9 @@ cloud cld_three = {1050, 1100, 1050,game_origin.y + 610, 1, "images/cloud.bmp"};
 
 
 //chicken initialization
-chicken white_chick = {{game_origin.x + 100, -1}, {84, 91}, {chicken_speed[0], 0}, game_origin.x + 800,show_chicken[0], 0, "images/chicken-white.bmp"};
-chicken blue_chick = {{game_origin.x + 550, -1}, {74, 107}, {-1*chicken_speed[1],0}, game_origin.x + 300, show_chicken[1], 1, "images/chicken-blue.bmp"};
-chicken golden_chick = {{game_origin.x + 1000, -1}, {59, 94}, {-1*chicken_speed[2],0}, game_origin.x + 300, show_chicken[2], 2, "images/chicken-golden.bmp"};
+chicken white_chick = {{game_origin.x + 100, -1}, {84, 91}, {chicken_speed[0], 0}, game_origin.x + 800,0, 0, "images/chicken-white.bmp"};
+chicken blue_chick = {{game_origin.x + 550, -1}, {74, 107}, {-1*chicken_speed[1],0}, game_origin.x + 300, 0, 1, "images/chicken-blue.bmp"};
+chicken golden_chick = {{game_origin.x + 1000, -1}, {59, 94}, {-1*chicken_speed[2],0}, game_origin.x + 300, 0, 2, "images/chicken-golden.bmp"};
 
 //flock initialization
 flock flock_arr[] = {{AddVector(game_origin, {0, 500}),{game_dimension.x, 3},white_chick, blue_chick, golden_chick},
@@ -116,14 +138,19 @@ void RightShift(int mx, int my);
 void LeftShift(int mx, int my);
 void ChickenDraw(chicken* chick);
 void FlockDraw(flock* fk);
-void GenerateRandom(int arr[], int start, int end, int no_of_rand);
+void GenerateRandom(int arr[], int start, int end, int no_of_rand, int chick_detect);
 void ChangeColor(rgb color);
 void ScoreBoardDraw();
 void StopwatchUpdate();
 void PopFrontEgg(projectile arr[], int* size);
-void FloatingEggDraw();
+void FloatingObjDraw();
 int ProjectileDraw(projectile* dim);
 int FallingObjectUpdate(projectile* obj);
+void TopscoreUpdate(char* name, int scr);
+void WriteTopperInfo();
+void GetTopperInfo();
+void Prompt();
+void PromptPress();
 
 
 int ck = 1; //test
@@ -134,12 +161,23 @@ void GamePage()
     if(ck)
     {
         ck = 0;
-        for(int j = 0; j < 2; j++)
+        int end = stopwatch_end_min*60 + stopwatch_end_sec - 1 + 30;
+        for(int j = 0; j < flock_arr_size; j++)
         {
-            GenerateRandom(flock_arr[j].white.egg_lay, 0, 59, 30);
-            GenerateRandom(flock_arr[j].blue.egg_lay, 0, 59, 30);
-            GenerateRandom(flock_arr[j].golden.egg_lay, 0, 59, 30);
+            //start time for both eggs and shit should be same
+            GenerateRandom(flock_arr[j].white.egg_lay, 2, end, flock_arr[j].white.no_of_egg, -1);            
+            GenerateRandom(flock_arr[j].white.shit_lay, 2, end, flock_arr[j].white.no_of_egg/2, j*10);         
+
+            GenerateRandom(flock_arr[j].blue.egg_lay, 2, end, flock_arr[j].blue.no_of_egg, -1);
+            GenerateRandom(flock_arr[j].blue.shit_lay, 2, end, flock_arr[j].blue.no_of_egg/2, j*10 + 1);
+
+            GenerateRandom(flock_arr[j].golden.egg_lay, 2, end, flock_arr[j].golden.no_of_egg, -1);
+            GenerateRandom(flock_arr[j].golden.shit_lay, 2, end, flock_arr[j].golden.no_of_egg/2, j*10 + 2);
         }
+
+        GenerateRandom(basket_speed_perks_arr, 2, end, basket_speed_no_of_perks, -1);
+        GenerateRandom(basket_size_perks_arr, 2, end, basket_size_no_of_perks, -1);
+        GenerateRandom(extra_time_perks_arr, 2, end, extra_time_no_of_perks, -1);
     }//testing purpose
 
 
@@ -167,9 +205,9 @@ void GamePage()
 	CloudAnimation(&cld_three);
     //end of animated clouds
 
-    FloatingEggDraw();
+    FloatingObjDraw();
 
-    for(int i = 0;i< 2; i++)
+    for(int i = 0;i< flock_arr_size; i++)
     {
         flock_arr[i].white.position.y = flock_arr[i].blue.position.y = flock_arr[i].golden.position.y = flock_arr[i].origin.y;
         FlockDraw(&flock_arr[i]);
@@ -263,11 +301,41 @@ void FlockDraw(flock* fk)
     ChickenDraw(&fk->golden);
 }
 
-void GenerateRandom(int arr[], int start, int end, int no_of_rand)
+void GenerateRandom(int arr[], int start, int end, int no_of_rand, int chick_detect)
 {
     arr[no_of_rand] = -1; //indicate the end of the eggs
 
     int check_duplicate[end-start+10] = {0};
+
+    //for eggs and shit fall time unique 
+    if(chick_detect != -1)
+    {
+        if(chick_detect%10 == 0)
+        {
+            for(int i = 0;i < flock_arr[chick_detect/10].white.no_of_egg; i++)
+            {
+                int j = flock_arr[chick_detect/10].white.egg_lay[i] - start;
+                check_duplicate[j] = 1;
+            }
+        }
+        else if(chick_detect%10 == 1)
+        {
+            for(int i = 0;i < flock_arr[chick_detect/10].blue.no_of_egg; i++)
+            {
+                int j = flock_arr[chick_detect/10].blue.egg_lay[i] - start;
+                check_duplicate[j] = 1;
+            }
+        }
+        else
+        {
+             for(int i = 0;i < flock_arr[chick_detect/10].golden.no_of_egg; i++)
+            {
+                int j = flock_arr[chick_detect/10].golden.egg_lay[i] - start;
+                check_duplicate[j] = 1;
+            }           
+        }
+        
+    }
     for(int i = 0; i< no_of_rand; i++)
     {
         int random = (int)rand()%(end - start+1);
@@ -278,16 +346,19 @@ void GenerateRandom(int arr[], int start, int end, int no_of_rand)
         arr[i] = start + random;
     }
 
-    for(int pos = no_of_rand - 1; pos; pos--)
+    if(no_of_rand-1>=0)
     {
-        int maxi_ind = 0;
-        for(int j = 0; j <= pos; j++)
-            if(arr[j] > arr[maxi_ind])
-                maxi_ind = j;
-        
-        int temp = arr[maxi_ind];
-        arr[maxi_ind] = arr[pos];
-        arr[pos] = temp;
+        for(int pos = no_of_rand - 1; pos; pos--)
+        {
+            int maxi_ind = 0;
+            for(int j = 0; j <= pos; j++)
+                if(arr[j] > arr[maxi_ind])
+                    maxi_ind = j;
+            
+            int temp = arr[maxi_ind];
+            arr[maxi_ind] = arr[pos];
+            arr[pos] = temp;
+        }
     }
 
 }
@@ -323,6 +394,8 @@ void ScoreBoardDraw()
     char stopwatch_str[20];
     sprintf(stopwatch_str, "TIME: %02d : %02d", stopwatch_min, stopwatch_sec);
     iText(scoreboard_X + horizontal_padding, scoreboard_Y + low_cell - vertical_padding, stopwatch_str, GLUT_BITMAP_HELVETICA_18);
+    sprintf(stopwatch_str, "FINISH TIME: %02d : %02d", stopwatch_end_min, stopwatch_end_sec);
+    iText(scoreboard_X + horizontal_padding, scoreboard_Y + low_cell - 2*vertical_padding, stopwatch_str, GLUT_BITMAP_HELVETICA_18);
 
     iText(scoreboard_X + horizontal_padding, scoreboard_Y + mid_cell - vertical_padding, "WHITE        BLUE      GOLDEN", GLUT_BITMAP_HELVETICA_18);
     char egg_cnt_str[50];
@@ -332,23 +405,11 @@ void ScoreBoardDraw()
 
 void StopwatchUpdate()
 {
-/*     if(!stopwatch_min && !stopwatch_sec)
-    {
-        //game over code
-        return;
-    }
-
-    if(stopwatch_sec)
-        stopwatch_sec--;
-    else
-    {
-        stopwatch_min--;
-        stopwatch_sec = 59;    
-    } */
+    
 
     if(stopwatch_min == stopwatch_end_min && stopwatch_sec == stopwatch_end_sec)
     {
-        //game over code
+        TopscoreUpdate(profile_data[loggedin_profile], score);
         return;
     }
 
@@ -359,30 +420,82 @@ void StopwatchUpdate()
         stopwatch_min++;
     }
 
-    //adding eggs laid by the chickens
+    //adding eggs and shits laid by the chickens
     int time_in_sec = stopwatch_min*60 + stopwatch_sec;
-
     for(int i = 0; i < flock_arr_size; i++)
     {
-
-        if(flock_arr[i].white.egg_lay[flock_arr[i].white.next_egg] == time_in_sec)
+        if(flock_arr[i].white.show == 1 && flock_arr[i].white.egg_lay[flock_arr[i].white.next_egg] == time_in_sec)
         {
             flock_arr[i].white.next_egg++;
-            floating_eggs[floating_eggs_size++] = {.origin = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].white.speed,.color = flock_arr[i].white.color};            
+            floating_object[floating_objects_size++] = {.origin = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].white.speed,.color = flock_arr[i].white.color};            
+        }
+        if(flock_arr[i].white.show == 1 && flock_arr[i].white.shit_lay[flock_arr[i].white.next_shit] == time_in_sec)
+        {
+            flock_arr[i].white.next_shit++;
+            floating_object[floating_objects_size++] = {.origin = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].white.speed,.color = shit_color};            
         }
 
 
-        if(flock_arr[i].blue.egg_lay[flock_arr[i].blue.next_egg] == time_in_sec)
+        if(flock_arr[i].blue.show == 1 && flock_arr[i].blue.egg_lay[flock_arr[i].blue.next_egg] == time_in_sec)
         {
             flock_arr[i].blue.next_egg++;
-            floating_eggs[floating_eggs_size++] = {.origin = AddVector(flock_arr[i].blue.position, {flock_arr[i].blue.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].blue.position, {flock_arr[i].blue.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].blue.speed,.color = flock_arr[i].blue.color};            
+            floating_object[floating_objects_size++] = {.origin = AddVector(flock_arr[i].blue.position, {flock_arr[i].blue.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].blue.position, {flock_arr[i].blue.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].blue.speed,.color = flock_arr[i].blue.color};            
+        }
+        if(flock_arr[i].blue.show == 1 && flock_arr[i].blue.shit_lay[flock_arr[i].blue.next_shit] == time_in_sec)
+        {
+            flock_arr[i].blue.next_shit++;
+            floating_object[floating_objects_size++] = {.origin = AddVector(flock_arr[i].blue.position, {flock_arr[i].blue.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].blue.position, {flock_arr[i].blue.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].blue.speed,.color = shit_color};            
         }
 
-        if(flock_arr[i].golden.egg_lay[flock_arr[i].golden.next_egg] == time_in_sec)
+        if(flock_arr[i].golden.show == 1 && flock_arr[i].golden.egg_lay[flock_arr[i].golden.next_egg] == time_in_sec)
         {
             flock_arr[i].golden.next_egg++;
-            floating_eggs[floating_eggs_size++] = {.origin = AddVector(flock_arr[i].golden.position, {flock_arr[i].golden.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].golden.position, {flock_arr[i].golden.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].golden.speed,.color = flock_arr[i].golden.color};
+            floating_object[floating_objects_size++] = {.origin = AddVector(flock_arr[i].golden.position, {flock_arr[i].golden.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].golden.position, {flock_arr[i].golden.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].golden.speed,.color = flock_arr[i].golden.color};
         }
+        if(flock_arr[i].golden.show == 1 && flock_arr[i].golden.shit_lay[flock_arr[i].golden.next_shit] == time_in_sec)
+        {
+            flock_arr[i].golden.next_shit++;
+            floating_object[floating_objects_size++] = {.origin = AddVector(flock_arr[i].golden.position, {flock_arr[i].golden.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].golden.position, {flock_arr[i].golden.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].golden.speed,.color = shit_color};
+        }
+    }
+
+    if(basket_size_perks_arr[basket_size_next_perks] == time_in_sec)
+    {
+        basket_size_next_perks++;
+        if(basket_size_perks_active == 0)
+        {
+            int falling_X = (int)rand()%(int)game_dimension.x;
+            floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {10, 0},.velocity = {0, 0},.color = basket_size_perks_color};
+        }
+    }
+
+    if(extra_time_perks_arr[extra_time_next_perks] == time_in_sec)
+    {
+        extra_time_next_perks++;
+        int falling_X = (int)rand()%(int)game_dimension.x;
+        floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {10, 0},.velocity = {0, 0},.color = extra_time_perks_color};
+    }
+
+    if(basket_speed_perks_arr[basket_speed_next_perks] == time_in_sec)
+    {
+        basket_speed_next_perks++;
+        if(basket_speed_perks_active == 0)
+        {
+            int falling_X = (int)rand()%(int)game_dimension.x;
+            floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {10, 0},.velocity = {0, 0},.color = basket_speed_perks_color};
+        }
+    }
+
+    if(time_in_sec == basket_speed_perks_active)
+    {
+        basket_speed_perks_active = 0;
+        basket_speed = SubVector(basket_speed, {5, 0});
+    }
+
+    if(time_in_sec == basket_size_perks_active)
+    {
+        basket_size_perks_active = 0;
+        basket_no--;
     }
 }
 
@@ -397,13 +510,13 @@ void PopFrontEgg(projectile arr[], int* size, int ind)
     (*size)--;
 }
 
-void FloatingEggDraw()
+void FloatingObjDraw()
 {
     int rmv[50], next = 0;
 
-    for(int i = 0; i< floating_eggs_size; i++)
+    for(int i = 0; i< floating_objects_size; i++)
     {
-        if(ProjectileDraw(&floating_eggs[i]))
+        if(ProjectileDraw(&floating_object[i]))
         {
             rmv[next++] = i;
         }
@@ -423,7 +536,7 @@ void FloatingEggDraw()
     }
     
     for(int i = 0;i< next; i++)
-        PopFrontEgg(floating_eggs, &floating_eggs_size, rmv[i] - i);
+        PopFrontEgg(floating_object, &floating_objects_size, rmv[i] - i);
     
     /* floating_eggs_front += rmv; */
 /*     dbg(floating_eggs_front);
@@ -434,7 +547,7 @@ int ProjectileDraw(projectile* obj)
 {
     int res = 0;
 
-    if(obj->color < 3)
+    if(obj->color < 3) //egg object
     {
         ChangeColor(black);
         iFilledEllipse(obj->co_ordinate.x, obj->co_ordinate.y, obj->dimension.x+1, obj->dimension.y+1);
@@ -447,14 +560,34 @@ int ProjectileDraw(projectile* obj)
             ChangeColor(brown);
 
         iFilledEllipse(obj->co_ordinate.x, obj->co_ordinate.y, obj->dimension.x, obj->dimension.y);
-        res = FallingObjectUpdate(obj);
+        
+    }
+    else if(obj->color == shit_color)
+    {
+        ChangeColor(black);
+        iFilledCircle(obj->co_ordinate.x, obj->co_ordinate.y, obj->dimension.x, 3);
+    }
+    else if(obj->color == basket_speed_perks_color)
+    {
+        ChangeColor(violet1);
+        iFilledCircle(obj->co_ordinate.x, obj->co_ordinate.y, obj->dimension.x, 5);
+    }
+    else if(obj->color == basket_size_perks_color)
+    {
+        ChangeColor(red3);
+        iFilledCircle(obj->co_ordinate.x, obj->co_ordinate.y, obj->dimension.x, 5);
+    }
+    else if(obj->color == extra_time_perks_color)
+    {
+        ChangeColor(blue2);
+        iFilledCircle(obj->co_ordinate.x, obj->co_ordinate.y, obj->dimension.x, 5);
     }
     else
     {
         //other projectile
     }
     
-    
+    res = FallingObjectUpdate(obj);
     return res;
 }
 
@@ -466,7 +599,8 @@ int FallingObjectUpdate(projectile* obj)
 
 
     int ret = 0;
-   /*  obj->origin = AddVector(obj->origin, obj->co_ordinate); */
+
+    //entering basket
     if(obj->co_ordinate.x >= basket_origin.x && obj->co_ordinate.x <= basket_origin.x + basket_arr[basket_no].dimension.x && prev_Y >= basket_origin.y + basket_arr[basket_no].dimension.y && obj->co_ordinate.y <= basket_origin.y + basket_arr[basket_no].dimension.y)
     {
         ret = 1;
@@ -476,18 +610,124 @@ int FallingObjectUpdate(projectile* obj)
             blue_egg_cnt++;
         else if(obj->color == 2)
             golden_egg_cnt++;
-        score = white_egg_cnt*white_egg_point + blue_egg_cnt*blue_egg_point + golden_egg_cnt*golden_egg_point;
+        else if(obj->color == shit_color)
+            shit_cnt++;
+        else if(obj->color == basket_speed_perks_color)
+        {
+            basket_speed = AddVector(basket_speed, {5, 0});
+            basket_speed_perks_active = stopwatch_min*60 + stopwatch_sec + 15;
+        }
+        else if(obj->color == basket_size_perks_color)
+        {
+            basket_no++;
+            basket_size_perks_active = stopwatch_min*60 + stopwatch_sec + 15;
+        }
+        else if(obj->color == extra_time_perks_color)
+        {
+            stopwatch_end_sec += 5;
+        }
+        score = -shit_cnt*shit_point + white_egg_cnt*white_egg_point + blue_egg_cnt*blue_egg_point + golden_egg_cnt*golden_egg_point;
     }
+    //hitting the ground
     else if(obj->co_ordinate.y <= game_origin.y + ground_height)
     {
         ret = 1;
     }
+    //collision with sidewall
     else if(obj->co_ordinate.x <= game_origin.x || obj->co_ordinate.x >= game_origin.x + game_dimension.x)
         obj->velocity.x*= -1;
 
     return ret;
 }
 
+
+
+void GetTopperInfo()
+{
+
+    FILE *fp = NULL;
+
+    if((fp = fopen("leaderboard.txt", "r")) == NULL)
+    {
+        printf("Error Opening file.\n");
+        return;
+    }
+
+    char temp[50];
+    top_nxt = 0;
+    while (fscanf(fp, "%[^\n]%*c", temp) != EOF)
+    {
+        char s_temp[10];
+        int i = 0;
+        for(; i< strlen(temp); i++)
+        {
+            if(temp[i] == ',')
+                break;
+            toppers[top_nxt][i] = temp[i];
+        }
+
+        toppers[top_nxt][i] = '\0';
+        i++;
+
+        for(int j = 0; i < strlen(temp); i++, j++)
+            s_temp[j] = temp[i];
+        
+        top_scores[top_nxt] = atoi(s_temp);
+        top_nxt++;
+    }
+    
+
+    fclose(fp);
+}
+
+void TopscoreUpdate(char* name, int scr)
+{
+    if(top_nxt == 0)
+        GetTopperInfo();
+    int pos = top_nxt;
+
+    while (pos && top_scores[pos-1] < scr)
+    {
+        pos--;
+    }
+    
+    for(int i = top_nxt - 1; i > pos; i--)
+    {
+        top_scores[i] = top_scores[i-1];
+        strcpy(toppers[i], toppers[i-1]);
+    }
+
+    if(top_nxt == 0 || pos < top_nxt)
+    {
+        top_scores[pos] = scr;
+        strcpy(toppers[pos], name);
+        top_nxt++;
+    }
+    WriteTopperInfo();
+}
+
+void WriteTopperInfo()
+{
+    if(top_nxt == 0)
+        return;
+    
+    FILE *fp = NULL;
+    if((fp = fopen("leaderboard.txt", "w")) == NULL)
+    {
+        printf("Error opening file in WriteTopperInfo.\n");
+        return;
+    }
+
+    for(int i =0 ; i< top_nxt; i++)
+    {
+        if(fprintf(fp, "%s,%d\n", toppers[i], top_scores[i]) == EOF)
+        {
+            printf("Error writing to leaderboard.\n");
+            return;
+        }
+    }
+    fclose(fp);
+}
 
 
 
