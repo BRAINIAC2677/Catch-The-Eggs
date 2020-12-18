@@ -46,6 +46,28 @@ typedef struct
     char* filename;
 }basket;
 
+//struct from homePage
+typedef struct 
+{
+    Vector origin, dimension;
+    char* str;
+    int active, page_no;
+    void (*function_pointer)();
+}button;
+
+typedef struct 
+{
+    Vector origin, dimension;
+    char *title, *label;
+    char input[50];
+    int next_input, active, page_no;
+}placeholder;
+
+typedef struct 
+{
+    int one, two, three;
+} int_tuple;
+
 
 #define shit_color 3
 #define basket_speed_perks_color 4
@@ -56,7 +78,7 @@ typedef struct
 //global variables
 Vector game_origin = {400, 50}, game_dimension = {1100, 720};
 int ground_height = 50;
-Vector basket_origin = AddVector(game_origin, {game_dimension.x/2, ground_height}), basket_speed = {15, 0};
+Vector basket_origin = AddVector(game_origin, {game_dimension.x/2, 0}), basket_speed = {15, 0};
 int basket_no = 0;  
 Vector right_button_origin = SubVector(game_origin, {60, 0});
 Vector left_button_origin = SubVector(game_origin, {120, -2});
@@ -66,6 +88,71 @@ int white_egg_cnt = 0, blue_egg_cnt = 0, golden_egg_cnt = 0, shit_cnt = 0;
 int white_egg_point = 5, blue_egg_point = 10, golden_egg_point = 20, shit_point = 5;
 int stopwatch_min = 0, stopwatch_sec = 0, stopwatch_end_min = 1, stopwatch_end_sec = 0;
 Vector net_accleration = {0, -.1};
+
+//variables from homepage
+Vector home_origin = {500, 0}, home_dimension = {550, screen_height};
+int HEL_font_size = 13;
+int button_height = 50, button_grid = 70;
+int placeholder_height = 30, placeholder_grid = 100;
+
+
+
+//functions from homepage
+void ButtonDraw(button btn, rgb col);
+void LoginPage();
+void SignUp();
+void PlaceholderDraw(placeholder* pl, rgb col);
+void AddProfileInfo();
+void LoginInfo();
+void GetProfileInfo();
+int UsernameMatch(char *user_name);
+int PassMatch(char *pass);
+void ProfileAccess();
+void LevelPage();
+void LevelOne();
+void LevelTwo();
+void LevelThree();
+void LevelFour();
+void LevelFive();
+void Intro();
+void LoginPress();
+void SignupPress();
+void Prompt();
+void PromptPress();
+void LeaderboardDraw();
+void BackPress1();
+void LeaderboardPress();
+void ExitPress();
+void StartPress();
+void PausePress();
+void ResumePress();
+void BackPress2();
+void XPress();
+
+
+//buttons initialization
+button button_arr[] = {{AddVector(home_origin,{0, button_grid}), {100, button_height}, "EXIT", .page_no = HomePageNo, .function_pointer = ExitPress}, 
+{AddVector(home_origin,{0, 2*button_grid}), {100, button_height}, "HELP", .page_no = HomePageNo}, 
+{AddVector(home_origin,{0, 3*button_grid}), {200, button_height}, "SETTINGS", .page_no = HomePageNo}, 
+{AddVector(home_origin,{0, 4*button_grid}), {250, button_height}, "LEADERBOARD", .page_no = HomePageNo, .function_pointer = LeaderboardPress}, 
+{AddVector(home_origin,{0, 5*button_grid}), {200, button_height}, "PROFILE", .page_no = HomePageNo}, 
+{AddVector(home_origin,{0, 6*button_grid}), {200, button_height}, "START", .page_no = HomePageNo, .function_pointer = StartPress}, 
+{AddVector(home_origin,{0, 7*button_grid}), {200, button_height}, "RESUME", .page_no = HomePageNo, .function_pointer = ResumePress}, 
+{AddVector(home_origin,{0, 4*button_grid}), {200, button_height}, "SIGN UP", .page_no = LoginPageNo, .function_pointer = SignupPress},
+{AddVector(home_origin,{0, 5*button_grid}), {200, button_height}, "LOG IN", .page_no = LoginPageNo, .function_pointer = LoginPress}, 
+{AddVector(home_origin,{0, button_grid}), {150, button_height-10}, "CREATE", .page_no = SignUpPageNo, .function_pointer = AddProfileInfo}, 
+{AddVector(home_origin,{0, button_grid}), {150, button_height-10}, "SIGN IN", .page_no = LoginInfoNo, .function_pointer = ProfileAccess},
+{AddVector(home_origin,{0, 2*button_grid}), {250, button_height-10}, "LEVEL 5", .page_no = LevelPageNo, .function_pointer = LevelFive},
+{AddVector(home_origin,{0, 3*button_grid}), {250, button_height-10}, "LEVEL 4", .page_no = LevelPageNo, .function_pointer = LevelFour},
+{AddVector(home_origin,{0, 4*button_grid}), {250, button_height-10}, "LEVEL 3", .page_no = LevelPageNo, .function_pointer = LevelThree},
+{AddVector(home_origin,{0, 5*button_grid}), {250, button_height-10}, "LEVEL 2", .page_no = LevelPageNo, .function_pointer = LevelTwo},
+{AddVector(home_origin,{0, 6*button_grid}), {250, button_height-10}, "LEVEL 1", .page_no = LevelPageNo, .function_pointer = LevelOne},
+{.dimension = {150, button_height-15}, .str = "Ok", .page_no = -1, .function_pointer = PromptPress},
+{AddVector(home_origin,{0, button_grid - 20}), {150, button_height-10}, "BACK", .page_no = LeaderboardNo, .function_pointer = BackPress1},
+{{game_origin.x-130, scoreboard_Y - 1*(button_height + 30)}, {100, button_height}, "PAUSE", .page_no = GamePageNo, .function_pointer = PausePress},
+{{game_origin.x-130, scoreboard_Y - 2*(button_height + 30)}, {100, button_height}, "RESUME", .page_no = GamePageNo, .function_pointer = ResumePress},
+{{game_origin.x-130, scoreboard_Y - 3*(button_height + 30)}, {100, button_height}, "BACK", .page_no = GamePageNo, .function_pointer = BackPress2},
+{{game_origin.x-130, scoreboard_Y - 4*(button_height + 30)}, {button_height, button_height}, "X", .page_no = GamePageNo, .function_pointer = XPress}};
 
 /* int basket_len[2] = {125, 180};
 char* baskets[2] = {"images/basket1.bmp", "images/basket2.bmp"}; */
@@ -117,9 +204,9 @@ cloud cld_three = {1050, 1100, 1050,game_origin.y + 610, 1, "images/cloud.bmp"};
 
 
 //chicken initialization
-chicken white_chick = {{game_origin.x + 100, -1}, {84, 91}, {chicken_speed[0], 0}, game_origin.x + 800,0, 0, "images/chicken-white.bmp"};
-chicken blue_chick = {{game_origin.x + 550, -1}, {74, 107}, {-1*chicken_speed[1],0}, game_origin.x + 300, 0, 1, "images/chicken-blue.bmp"};
-chicken golden_chick = {{game_origin.x + 1000, -1}, {59, 94}, {-1*chicken_speed[2],0}, game_origin.x + 300, 0, 2, "images/chicken-golden.bmp"};
+chicken white_chick = {{game_origin.x + 100, -1}, {115, 111}, {chicken_speed[0], 0}, game_origin.x + 800,0, 0, "images/red.bmp"};
+chicken blue_chick = {{game_origin.x + 550, -1}, {121, 114}, {-1*chicken_speed[1],0}, game_origin.x + 300, 0, 1, "images/blue.bmp"};
+chicken golden_chick = {{game_origin.x + 1000, -1}, {118, 111}, {-1*chicken_speed[2],0}, game_origin.x + 300, 0, 2, "images/chuck.bmp"};
 
 //flock initialization
 flock flock_arr[] = {{AddVector(game_origin, {0, 500}),{game_dimension.x, 3},white_chick, blue_chick, golden_chick},
@@ -129,6 +216,11 @@ int flock_arr_size = 2;
 //basket initialization
 basket basket_arr[] = {{{115, 60},"images/basket10.bmp"},
 {{180, 161}, "images/basket11.bmp"}};
+
+//bg_images
+char game_bg[50] = "images\\a.bmp";
+
+
 
 //function prototypes
 void CloudAnimation(cloud* c);
@@ -149,18 +241,17 @@ int FallingObjectUpdate(projectile* obj);
 void TopscoreUpdate(char* name, int scr);
 void WriteTopperInfo();
 void GetTopperInfo();
-void Prompt();
-void PromptPress();
 
 
-int ck = 1; //test
+
+int Init = 1; //test
 
 void GamePage()
 {
-    iShowBMP(0, 0, "images/sky_bg.bmp");
-    if(ck)
+    iShowBMP(0, 0, "images/blur_bg1.bmp");
+    if(Init)
     {
-        ck = 0;
+        Init = 0;
         int end = stopwatch_end_min*60 + stopwatch_end_sec - 1 + 30;
         for(int j = 0; j < flock_arr_size; j++)
         {
@@ -181,11 +272,13 @@ void GamePage()
     }//testing purpose
 
 
-	ChangeColor(sky_blue); //game_sec
-	iFilledRectangle(game_origin.x,game_origin.y, game_dimension.x, game_dimension.y);
+/* 	ChangeColor(sky_blue); //game_sec
+	iFilledRectangle(game_origin.x,game_origin.y, game_dimension.x, game_dimension.y); */
 
-	ChangeColor(grass_green);
-	iFilledRectangle(game_origin.x,game_origin.y, game_dimension.x, ground_height);
+/* 	ChangeColor(grass_green);
+	iFilledRectangle(game_origin.x,game_origin.y, game_dimension.x, ground_height); */
+
+    iShowBMP(game_origin.x, game_origin.y, game_bg);
 
 	BasketDraw(basket_arr[basket_no]);
 
@@ -212,12 +305,18 @@ void GamePage()
         flock_arr[i].white.position.y = flock_arr[i].blue.position.y = flock_arr[i].golden.position.y = flock_arr[i].origin.y;
         FlockDraw(&flock_arr[i]);
     }
- 
 
+    for(int i = 18; i< 22; i++)
+    {
+        ButtonDraw(button_arr[i], red3);
+    }
+ 
 }
 
 void CloudAnimation(cloud *c)
 {
+    if(pause)
+        return;
 	c->x += c->dx;
 	if(c->x == c->end_X || c->x == c->start_X)
 		c->dx *= -1;
@@ -264,29 +363,33 @@ void ChickenDraw(chicken* chick)
 {
     if(!chick->show)
         return;
-    iShowBMP2(chick->position.x, chick->position.y, chick->filename, 0XFFFFFF);
+    int ignore = 0xFFFFFF;
+    iShowBMP2(chick->position.x, chick->position.y, chick->filename, ignore);
 
     //motion update
-    chick->position.x += chick->speed.x;
-    if(chick->speed.x > 0)
+    if(!pause)
     {
-        if(chick->position.x > chick->boundary_X)
-            chick->position.x = chick->boundary_X;
-    }
-    else
-    {
-        if(chick->position.x < chick->boundary_X)
-            chick->position.x = chick->boundary_X;
-    }
-    
-    if(chick->position.x == chick->boundary_X)
-    { 
-        chick->boundary_X = game_origin.x + (int)rand()%(int)(game_dimension.x - chick->dimension.x);
-        if(chick->position.x < chick->boundary_X)
-            chick->speed.x = fabs(chick->speed.x);
+        chick->position.x += chick->speed.x;
+        if(chick->speed.x > 0)
+        {
+            if(chick->position.x > chick->boundary_X)
+                chick->position.x = chick->boundary_X;
+        }
         else
-            chick->speed.x = -fabs(chick->speed.x);
-        
+        {
+            if(chick->position.x < chick->boundary_X)
+                chick->position.x = chick->boundary_X;
+        }
+
+        if(chick->position.x == chick->boundary_X)
+        { 
+            chick->boundary_X = game_origin.x + (int)rand()%(int)(game_dimension.x - chick->dimension.x);
+            if(chick->position.x < chick->boundary_X)
+                chick->speed.x = fabs(chick->speed.x);
+            else
+                chick->speed.x = -fabs(chick->speed.x);
+            
+        }
     }
 
 }
@@ -409,7 +512,19 @@ void StopwatchUpdate()
 
     if(stopwatch_min == stopwatch_end_min && stopwatch_sec == stopwatch_end_sec)
     {
+        iPauseTimer(0);
+        pause = 1;
+        PlaySound(NULL, NULL, 0);
         TopscoreUpdate(profile_data[loggedin_profile], score);
+
+        char temp[100] = "GAME OVER";
+        strcpy(prompt_text, temp);
+        prompt_show = PromptNo;
+
+
+        //clearingalldata
+        //pauseanimation
+
         return;
     }
 
@@ -553,7 +668,7 @@ int ProjectileDraw(projectile* obj)
         iFilledEllipse(obj->co_ordinate.x, obj->co_ordinate.y, obj->dimension.x+1, obj->dimension.y+1);
         
         if(obj->color == 0)
-            ChangeColor(white);
+            ChangeColor(red2);
         else if(obj->color==1)
             ChangeColor(blue1);
         else
@@ -593,6 +708,8 @@ int ProjectileDraw(projectile* obj)
 
 int FallingObjectUpdate(projectile* obj)
 {
+    if(pause)
+        return 0;
     double prev_Y = obj->co_ordinate.y;
     obj->velocity = AddVector(obj->velocity, net_accleration);
     obj->co_ordinate = AddVector(obj->co_ordinate, obj->velocity);
@@ -629,7 +746,7 @@ int FallingObjectUpdate(projectile* obj)
         score = -shit_cnt*shit_point + white_egg_cnt*white_egg_point + blue_egg_cnt*blue_egg_point + golden_egg_cnt*golden_egg_point;
     }
     //hitting the ground
-    else if(obj->co_ordinate.y <= game_origin.y + ground_height)
+    else if(obj->co_ordinate.y <= game_origin.y)
     {
         ret = 1;
     }
@@ -668,9 +785,11 @@ void GetTopperInfo()
 
         toppers[top_nxt][i] = '\0';
         i++;
-
-        for(int j = 0; i < strlen(temp); i++, j++)
+        int j;
+        for(j = 0; i < strlen(temp); i++, j++)
             s_temp[j] = temp[i];
+        
+        s_temp[j] = '\0';
         
         top_scores[top_nxt] = atoi(s_temp);
         top_nxt++;
@@ -690,18 +809,18 @@ void TopscoreUpdate(char* name, int scr)
     {
         pos--;
     }
-    
+    if(top_nxt < 10)
+        top_nxt++;
     for(int i = top_nxt - 1; i > pos; i--)
     {
         top_scores[i] = top_scores[i-1];
         strcpy(toppers[i], toppers[i-1]);
     }
 
-    if(top_nxt == 0 || pos < top_nxt)
+    if(pos < top_nxt)
     {
         top_scores[pos] = scr;
         strcpy(toppers[pos], name);
-        top_nxt++;
     }
     WriteTopperInfo();
 }

@@ -5,27 +5,10 @@
 #include<string.h>
 #include "GamePage.h"
 
-typedef struct 
-{
-    Vector origin, dimension;
-    char* str;
-    int active, page_no;
-    void (*function_pointer)();
-}button;
 
 
-typedef struct 
-{
-    Vector origin, dimension;
-    char *title, *label;
-    char input[50];
-    int next_input, active, page_no;
-}placeholder;
 
-typedef struct 
-{
-    int one, two, three;
-} int_tuple;
+
 
 
 typedef struct
@@ -40,80 +23,41 @@ time_slot time_slot_arr[] = {{1, 0, {100, 300, 500, 700, 1000}, {{20, 0, 0}, {20
 {2, 0, {300, 500, 700, 1000, 1300}, {{20, 0, 0}, {20, 15, 0}, {20, 15, 10}, {20, 15, 0},{20, 15, 0},{20, 15, 10},{20, 15, 10}}},
 {3, 0, {500, 700, 1000, 1300, 1500}, {{20, 0, 0}, {20, 15, 0}, {20, 15, 10}, {20, 15, 0},{20, 15, 0},{20, 15, 10},{20, 15, 10}}}};
 
-//variables from homepage
-Vector home_origin = {500, 0}, home_dimension = {550, screen_height};
-int HEL_font_size = 13;
-int button_height = 50, button_grid = 70;
-int placeholder_height = 30, placeholder_grid = 100;
-int current_time_slot = 0;
 
 
 
-void ButtonDraw(button btn, rgb col);
-void LoginPage();
-void SignUp();
-void PlaceholderDraw(placeholder* pl, rgb col);
-void AddProfileInfo();
-void LoginInfo();
-void GetProfileInfo();
-int UsernameMatch(char *user_name);
-int PassMatch(char *pass);
-void ProfileAccess();
-void LevelPage();
-void LevelOne();
-void LevelTwo();
-void LevelThree();
-void LevelFour();
-void LevelFive();
-void Intro();
-void LoginPress();
-void SignupPress();
 
-//buttons initialization
-button button_arr[] = {{AddVector(home_origin,{0, button_grid}), {100, button_height}, "EXIT", .page_no = HomePageNo}, 
-{AddVector(home_origin,{0, 2*button_grid}), {100, button_height}, "HELP", .page_no = HomePageNo}, 
-{AddVector(home_origin,{0, 3*button_grid}), {200, button_height}, "SETTINGS", .page_no = HomePageNo}, 
-{AddVector(home_origin,{0, 4*button_grid}), {250, button_height}, "LEADERBOARD", .page_no = HomePageNo}, 
-{AddVector(home_origin,{0, 5*button_grid}), {200, button_height}, "PROFILE", .page_no = HomePageNo}, 
-{AddVector(home_origin,{0, 6*button_grid}), {200, button_height}, "START", .page_no = HomePageNo}, 
-{AddVector(home_origin,{0, 7*button_grid}), {200, button_height}, "RESUME", .page_no = HomePageNo}, 
-{AddVector(home_origin,{0, 4*button_grid}), {200, button_height}, "SIGN UP", .page_no = LoginPageNo, .function_pointer = SignupPress},
-{AddVector(home_origin,{0, 5*button_grid}), {200, button_height}, "LOG IN", .page_no = LoginPageNo, .function_pointer = LoginPress}, 
-{AddVector(home_origin,{0, button_grid}), {150, button_height-10}, "CREATE", .page_no = SignUpPageNo, .function_pointer = AddProfileInfo}, 
-{AddVector(home_origin,{0, button_grid}), {150, button_height-10}, "SIGN IN", .page_no = LoginInfoNo, .function_pointer = ProfileAccess},
-{AddVector(home_origin,{0, 2*button_grid}), {250, button_height-10}, "LEVEL 5", .page_no = LevelPageNo, .function_pointer = LevelFive},
-{AddVector(home_origin,{0, 3*button_grid}), {250, button_height-10}, "LEVEL 4", .page_no = LevelPageNo, .function_pointer = LevelFour},
-{AddVector(home_origin,{0, 4*button_grid}), {250, button_height-10}, "LEVEL 3", .page_no = LevelPageNo, .function_pointer = LevelThree},
-{AddVector(home_origin,{0, 5*button_grid}), {250, button_height-10}, "LEVEL 2", .page_no = LevelPageNo, .function_pointer = LevelTwo},
-{AddVector(home_origin,{0, 6*button_grid}), {250, button_height-10}, "LEVEL 1", .page_no = LevelPageNo, .function_pointer = LevelOne},
-{.dimension = {150, button_height-15}, .str = "Ok", .page_no = -1, .function_pointer = PromptPress}};
+
+
+
 
 
 //placeholder initialization
 placeholder placeholder_arr[] = {{AddVector(home_origin,{0, 2*placeholder_grid}), {300, placeholder_height},"PASSWORD", "Password should not cross 30 characters.", .page_no = SignUpPageNo},
 {AddVector(home_origin,{0, 3*placeholder_grid}), {300, placeholder_height},"LAST NAME", "Last name should not cross 30 characters.", .page_no = SignUpPageNo},
 {AddVector(home_origin,{0, 4*placeholder_grid}), {300, placeholder_height},"FIRST NAME", "First name should not cross 30 characters.", .page_no = SignUpPageNo},
-{AddVector(home_origin,{0, 5*placeholder_grid}), {300, placeholder_height},"USERNAME", "Username should not cross 30 characters.", .page_no = SignUpPageNo},
+{AddVector(home_origin,{0, 5*placeholder_grid}), {300, placeholder_height},"USERNAME", "Username should not contain any commas and not cross 30 characters.", .page_no = SignUpPageNo},
 {AddVector(home_origin,{0, 3*placeholder_grid}), {300, placeholder_height},"PASSWORD", "Write your password.", .page_no = LoginInfoNo},
 {AddVector(home_origin,{0, 4*placeholder_grid}), {300, placeholder_height},"USERNAME", "Write your username.",.page_no = LoginInfoNo}};
 
 
-
+int cnt = 0;
 
 void HomePage()
 {
-    iShowBMP(0, 0, "images/sky_bg.bmp");
+    iShowBMP(0, 0, "images/blur_bg2.bmp");
 
     ChangeColor(black);
     iFilledRectangle(home_origin.x, home_origin.y, home_dimension.x, home_dimension.y);
 
+    iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 300, "images\\home_page_title.bmp");
+
     for(int i = 0; i< 7; i++)
     {
-        if(button_arr[i].page_no == page_no)
-        {
-            button_arr[i].origin.x = home_origin.x + (home_dimension.x - button_arr[i].dimension.x)/2;
-            ButtonDraw(button_arr[i], red1);
-        }
+        if(i == 6 && !pause)
+            continue;
+        button_arr[i].origin.x = home_origin.x + (home_dimension.x - button_arr[i].dimension.x)/2;
+        ButtonDraw(button_arr[i], red1);
     }
     
 }
@@ -144,10 +88,12 @@ void ButtonDraw(button btn, rgb col)
 void LoginPage()
 {
 
-    iShowBMP(0, 0, "images/sky_bg.bmp");
+    iShowBMP(0, 0, "images/blur_bg3.bmp");
 
     ChangeColor(black);
     iFilledRectangle(home_origin.x, home_origin.y, home_dimension.x, home_dimension.y);
+
+    iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 400, "images\\catch_the_eggs_red.bmp");
 
     for(int i = 7; i<9; i++)
     {
@@ -159,10 +105,12 @@ void LoginPage()
 
 void SignUp()
 {
-    iShowBMP(0, 0, "images/sky_bg.bmp");
+    iShowBMP(0, 0, "images/blur_bg4.bmp");
 
     ChangeColor(black);
     iFilledRectangle(home_origin.x, home_origin.y, home_dimension.x, home_dimension.y);
+
+    iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 200, "images\\create_profile_title.bmp");
 
     for(int i = 0; i< 4; i++)
     {
@@ -210,6 +158,16 @@ void AddProfileInfo()
         //invalid prompt 
         return;
     }
+
+    for(int i = 0; i< strlen(placeholder_arr[3].input); i++)
+    {
+        if(placeholder_arr[3].input[i] == ',')
+        {
+            //invalid 
+            return;
+        }
+    }
+
     
 
     strcpy(username, placeholder_arr[3].input);
@@ -269,11 +227,12 @@ void AddProfileInfo()
 
 void LoginInfo()
 {
-    iShowBMP(0, 0, "images/sky_bg.bmp");
+    iShowBMP(0, 0, "images/blur_bg1.bmp");
 
     ChangeColor(black);
     iFilledRectangle(home_origin.x, home_origin.y, home_dimension.x, home_dimension.y);
 
+    iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 300, "images\\catch_the_eggs_blue.bmp");
 
     for(int i = 4; i<6; i++)
     {
@@ -407,7 +366,7 @@ void ProfileAccess()
 
 void LevelPage()
 {
-    iShowBMP(0, 0, "images/sky_bg.bmp");
+    iShowBMP(0, 0, "images/blur_bg4.bmp");
 
     ChangeColor(black);
     iFilledRectangle(home_origin.x, home_origin.y, home_dimension.x, home_dimension.y);
@@ -434,8 +393,12 @@ void LevelOne()
     flock_arr[0].blue.no_of_egg = time_slot_arr[current_time_slot].no_of_eggs[0].two;
     flock_arr[0].golden.no_of_egg = time_slot_arr[current_time_slot].no_of_eggs[0].three;
 
-    page_no = GamePageNo;  
-    iResumeTimer(0);  
+    strcpy(game_bg, "images\\a.bmp");
+    page_no = GamePageNo;
+    if(sound_is_on)
+        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);  
+    iResumeTimer(0);
+    pause = 0;  
 }
 void LevelTwo()
 {
@@ -451,8 +414,12 @@ void LevelTwo()
     flock_arr[0].blue.no_of_egg = time_slot_arr[current_time_slot].no_of_eggs[1].two;
     flock_arr[0].golden.no_of_egg = time_slot_arr[current_time_slot].no_of_eggs[1].three;
 
+    strcpy(game_bg, "images\\b.bmp");
     page_no = GamePageNo;
+    if(sound_is_on)
+        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);
     iResumeTimer(0);
+    pause = 0;
 }
 void LevelThree()
 {
@@ -469,8 +436,12 @@ void LevelThree()
     flock_arr[0].blue.no_of_egg = time_slot_arr[current_time_slot].no_of_eggs[2].two;
     flock_arr[0].golden.no_of_egg = time_slot_arr[current_time_slot].no_of_eggs[2].three;
 
+    strcpy(game_bg, "images\\c.bmp");
     page_no = GamePageNo;
+    if(sound_is_on)
+        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);
     iResumeTimer(0);
+    pause = 0;
 }
 void LevelFour()
 {
@@ -492,8 +463,12 @@ void LevelFour()
     flock_arr[1].blue.no_of_egg = time_slot_arr[current_time_slot].no_of_eggs[4].two;
     flock_arr[1].golden.no_of_egg = time_slot_arr[current_time_slot].no_of_eggs[4].three;
 
+    strcpy(game_bg, "images\\d.bmp");
     page_no = GamePageNo;
+    if(sound_is_on)
+        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);
     iResumeTimer(0);
+    pause = 0;
 }
 void LevelFive()
 {
@@ -517,13 +492,17 @@ void LevelFive()
     flock_arr[1].blue.no_of_egg = time_slot_arr[current_time_slot].no_of_eggs[6].two;
     flock_arr[1].golden.no_of_egg = time_slot_arr[current_time_slot].no_of_eggs[6].three;
 
+    strcpy(game_bg, "images\\a.bmp");
     page_no = GamePageNo;
+    if(sound_is_on)
+        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);
     iResumeTimer(0);
+    pause = 0;
 }
 
 void Intro()
 {
-    iShowBMP(0, 0, "images/sky_bg.bmp");
+    iShowBMP(0, 0, "images/main_bg.bmp");
 
 }
 
@@ -581,7 +560,11 @@ void Prompt()
 
 void PromptPress()
 {
-    if(prompt_text[0] = 'N')  //logged in
+    if(prompt_text[0] = 'G')
+    {
+        XPress();
+    }
+    else if(prompt_text[0] = 'N')  //logged in
     {
 
     }
@@ -592,4 +575,120 @@ void PromptPress()
     }
 
     prompt_show = 0;
+}
+
+void LeaderboardDraw()
+{
+    if(top_nxt == 0)
+        GetTopperInfo();
+
+    iShowBMP(0, 0, "images/blur_bg1.bmp");
+    ChangeColor(black);
+    iFilledRectangle(home_origin.x, home_origin.y, home_dimension.x, home_dimension.y);
+
+    if(current_time_slot == 0)
+            iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 120, "images\\leaderboard_short.bmp");
+
+    int vertical_padding = 50;
+    Vector grid_one_origin = AddVector(home_origin, {0, home_dimension.y - 3*vertical_padding});
+    Vector grid_two_origin = AddVector(home_origin, {home_dimension.x/3, home_dimension.y - 3*vertical_padding});
+    Vector grid_three_origin = AddVector(home_origin, {2*home_dimension.x/3, home_dimension.y - 3*vertical_padding});
+
+    ChangeColor(red1);
+    iText(grid_one_origin.x + (home_dimension.x/3 - 4*HEL_font_size)/2, grid_one_origin.y, "RANK", GLUT_BITMAP_HELVETICA_18);
+    iLine(grid_one_origin.x + vertical_padding/5, grid_one_origin.y - vertical_padding/5, grid_one_origin.x + home_dimension.x/3 - vertical_padding/5, grid_one_origin.y - vertical_padding/5);
+    
+    iText(grid_two_origin.x + (home_dimension.x/3 - 8*HEL_font_size)/2, grid_two_origin.y, "USERNAME", GLUT_BITMAP_HELVETICA_18);
+    iLine(grid_two_origin.x + vertical_padding/5, grid_two_origin.y - vertical_padding/5, grid_two_origin.x + home_dimension.x/3 - vertical_padding/5, grid_one_origin.y - vertical_padding/5);
+    
+    iText(grid_three_origin.x + (home_dimension.x/3 - 5*HEL_font_size)/2, grid_three_origin.y, "SCORE", GLUT_BITMAP_HELVETICA_18);
+    iLine(grid_three_origin.x + vertical_padding/5, grid_three_origin.y - vertical_padding/5, grid_three_origin.x + home_dimension.x/3 - vertical_padding/5, grid_one_origin.y - vertical_padding/5);
+
+
+    ChangeColor(turquoise);
+
+    for(int i = 0, rank = 1; i< top_nxt; i++)
+    {
+        if(i && top_scores[i-1] != top_scores[i])
+            rank++;
+
+        grid_one_origin = SubVector(grid_one_origin, {0, vertical_padding});
+        grid_two_origin = SubVector(grid_two_origin, {0, vertical_padding});
+        grid_three_origin = SubVector(grid_three_origin, {0, vertical_padding});
+
+        char str_rank[10], str_score[10];
+        sprintf(str_rank, "%d", rank);
+        sprintf(str_score, "%d", top_scores[i]);
+
+
+
+        iText(grid_one_origin.x + (home_dimension.x/3 - 2*HEL_font_size)/2, grid_one_origin.y, str_rank, GLUT_BITMAP_HELVETICA_18);
+        iText(grid_two_origin.x + (home_dimension.x/3 - 8*HEL_font_size)/2, grid_two_origin.y, toppers[i], GLUT_BITMAP_HELVETICA_18);
+        iText(grid_three_origin.x + (home_dimension.x/3 - strlen(str_score)*HEL_font_size)/2, grid_three_origin.y, str_score, GLUT_BITMAP_HELVETICA_18);
+
+
+    }
+
+    button_arr[17].origin.x = home_origin.x + (home_dimension.x - button_arr[17].dimension.x)/2;
+    ButtonDraw(button_arr[17], blue1); 
+
+
+}
+
+void BackPress1()
+{
+    page_no = HomePageNo;
+}
+
+
+void LeaderboardPress()
+{
+    page_no = LeaderboardNo;
+}
+
+void ExitPress()
+{
+    exit(0);
+}
+
+void StartPress()
+{
+    XPress();
+    page_no = LevelPageNo;
+}
+
+void PausePress()
+{
+    iPauseTimer(0);
+    pause = 1;
+    if(sound_is_on)
+        PlaySound(NULL, NULL, 0);
+}
+
+void ResumePress()
+{
+    iResumeTimer(0);
+    pause = 0;
+    page_no = GamePageNo;
+    if(sound_is_on)
+        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);
+}
+
+void BackPress2()
+{
+    PausePress();
+    page_no = HomePageNo;
+}
+
+void XPress()
+{
+        page_no = HomePageNo;
+        iPauseTimer(0);
+        pause = 0;
+        Init = 1;
+        floating_objects_size = 0;
+        stopwatch_sec = stopwatch_min = 0;
+        white_egg_cnt = blue_egg_cnt = golden_egg_cnt = shit_cnt = score = 0;
+        if(sound_is_on)
+            PlaySound(NULL, NULL, 0);
 }

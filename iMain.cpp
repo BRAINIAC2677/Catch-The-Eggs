@@ -7,6 +7,7 @@ Start-Date: 07.12.2020
  */
 
 #include<bits/stdc++.h>
+#include<windows.h>
 using namespace std;
 
 typedef struct
@@ -21,10 +22,10 @@ int EqualVector(Vector a, Vector b);
 
 
 //global variables
-int page_no = 6, prompt_show = 0;
+int page_no = 6, prompt_show = 0, pause = 0, sound_is_on = 1;
 int screen_width = 1550, screen_height = 800;
 int chicken_speed[] = {3, 5, 7};
-
+int current_time_slot = 0;
 
 
 
@@ -37,6 +38,7 @@ int chicken_speed[] = {3, 5, 7};
 #define LoginInfoNo 4
 #define LevelPageNo 5
 #define IntroNo 6
+#define LeaderboardNo 7
 #define PromptNo -1
 
 
@@ -66,6 +68,7 @@ void iDraw()
 {
     //place your drawing codes here
     iClear();
+
 	
 	if(page_no == GamePageNo)
 		GamePage();
@@ -81,6 +84,8 @@ void iDraw()
 		LevelPage();
 	else if(page_no == IntroNo)
 		Intro();
+	else if(page_no == LeaderboardNo)
+		LeaderboardDraw();
 
 	if(prompt_show == PromptNo)
 		Prompt();
@@ -125,10 +130,16 @@ void iMouse(int button, int state, int mx, int my)
 
 		for(int i = 0; i< sizeof(button_arr)/sizeof(button_arr[0]); i++)
 		{
+			if(i == 6 && !pause) //extra constraints for resume button in homepage
+				continue;
 			if(mx >= button_arr[i].origin.x && mx <= button_arr[i].origin.x + button_arr[i].dimension.x && my >= button_arr[i].origin.y && my <= button_arr[i].origin.y + button_arr[i].dimension.y)
 			{
-				if(button_arr[i].page_no == page_no || (i == 16 && prompt_show == PromptNo))
+				if((button_arr[i].page_no == page_no && prompt_show != PromptNo) || (i == 16 && prompt_show == PromptNo))
+				{
+					/* PlaySound(TEXT("sounds\\button_press.wav"), NULL, SND_FILENAME|SND_SYNC); */	
 					button_arr[i].function_pointer();
+					break;
+				}
 			}			
 		}
 	}
@@ -174,6 +185,15 @@ void iSpecialKeyboard(unsigned char key)
 			BasketMove(-1);
 		break;
 
+	case GLUT_KEY_F12:
+		for(int i = 0; i< sizeof(placeholder_arr)/sizeof(placeholder_arr[0]); i++)
+		{
+			if(page_no == placeholder_arr[i].page_no && placeholder_arr[i].active == 1 && placeholder_arr[i].next_input)
+			{
+				placeholder_arr[i].input[--placeholder_arr[i].next_input] = '\0';
+			}
+		}
+
 	default:
 		break;
 	}
@@ -207,8 +227,9 @@ int main()
 	iSetTimer(1000, StopwatchUpdate); //No. 1 for stopwatch
 	iPauseTimer(0);
 
-	iSetTimer(4000, Introcng); //No 2 for intro
+	iSetTimer(5000, Introcng); //No 2 for intro
 
+	PlaySound(TEXT("sounds\\intro.wav"), NULL, SND_ASYNC);
     iInitialize(screen_width, screen_height, "Murga!");
     return 0;
 }
