@@ -132,6 +132,8 @@ void HelpPage();
 void HelpPress();
 void SettingsPage();
 void SettingsPress();
+void ProfilePress();
+void ProfilePage();
 
 
 //buttons initialization
@@ -139,7 +141,7 @@ button button_arr[] = {{AddVector(home_origin,{0, button_grid}), {100, button_he
 {AddVector(home_origin,{0, 2*button_grid}), {100, button_height}, "HELP", .page_no = HomePageNo, .function_pointer = HelpPress}, 
 {AddVector(home_origin,{0, 3*button_grid}), {200, button_height}, "SETTINGS", .page_no = HomePageNo, .function_pointer = SettingsPress}, 
 {AddVector(home_origin,{0, 4*button_grid}), {250, button_height}, "LEADERBOARD", .page_no = HomePageNo, .function_pointer = LeaderboardPress}, 
-{AddVector(home_origin,{0, 5*button_grid}), {200, button_height}, "PROFILE", .page_no = HomePageNo}, 
+{AddVector(home_origin,{0, 5*button_grid}), {200, button_height}, "PROFILE", .page_no = HomePageNo, .function_pointer = ProfilePress}, 
 {AddVector(home_origin,{0, 6*button_grid}), {200, button_height}, "START", .page_no = HomePageNo, .function_pointer = StartPress}, 
 {AddVector(home_origin,{0, 7*button_grid}), {200, button_height}, "RESUME", .page_no = HomePageNo, .function_pointer = ResumePress}, 
 {AddVector(home_origin,{0, 4*button_grid}), {200, button_height}, "SIGN UP", .page_no = LoginPageNo, .function_pointer = SignupPress},
@@ -158,7 +160,8 @@ button button_arr[] = {{AddVector(home_origin,{0, button_grid}), {100, button_he
 {{game_origin.x-130, scoreboard_Y - 3*(button_height + 30)}, {100, button_height}, "BACK", .page_no = GamePageNo, .function_pointer = BackPress2},
 {{game_origin.x-130, scoreboard_Y - 4*(button_height + 30)}, {button_height, button_height}, "X", .page_no = GamePageNo, .function_pointer = XPress},
 {{750, 80}, {150, button_height-10}, "BACK", .page_no = HelpPageNo, .function_pointer = BackPress1}, 
-{AddVector(home_origin,{0, 2*button_grid}), {150, button_height-10}, "BACK", .page_no = SettingsPageNo, .function_pointer = BackPress1}};
+{AddVector(home_origin,{0, 2*button_grid}), {150, button_height-10}, "BACK", .page_no = SettingsPageNo, .function_pointer = BackPress1},
+{AddVector(home_origin,{0, 2*button_grid}), {150, button_height-10}, "BACK", .page_no = ProfilePageNo, .function_pointer = BackPress1}};
 
 /* int basket_len[2] = {125, 180};
 char* baskets[2] = {"images/basket1.bmp", "images/basket2.bmp"}; */
@@ -200,6 +203,7 @@ rgb violet2 = {86, 11, 173};
 rgb violet3 = {72, 12, 168};
 rgb brown = {255, 182, 0};
 rgb yellow1 = {254, 228, 64};
+rgb light_yellow = {252, 191, 73};
 
 
 
@@ -824,7 +828,7 @@ void GetTopperInfo()
             if(temp[i] == ',')
                 break;
             toppers[top_nxt][i] = temp[i];
-        }e
+        }
 
         toppers[top_nxt][i] = '\0';
         i++;

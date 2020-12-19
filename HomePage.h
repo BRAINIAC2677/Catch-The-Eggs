@@ -146,16 +146,38 @@ void AddProfileInfo()
 
     for(int i = 0; i< 4; i++)
     {
-        if(placeholder_arr[i].next_input > 30)
+        if(placeholder_arr[i].next_input > 30 || placeholder_arr[i].next_input == 0)
         {
-            //invalid prompt
+            char temp[200] = "Number of characters should not exceed 30. Moreover, this info's can not empty.";
+            strcpy(prompt_text, temp);
+            prompt_show = PromptNo;
+
+            for(int i = 0; i< 4; i++)
+            {
+                int j;
+                for(j = 0; j < strlen(placeholder_arr[i].input); j++)
+                    placeholder_arr[i].input[j] = '\0';
+                placeholder_arr[i].next_input = 0;
+            }
+
             return;
         }
     }
 
     if(UsernameMatch(placeholder_arr[3].input) != -1)
     {
-        //invalid prompt 
+        char temp[200] = "This username is already taken. Try a new one.";
+        strcpy(prompt_text, temp);
+        prompt_show = PromptNo;
+
+        for(int i = 0; i< 4; i++)
+        {
+            int j;
+            for(j = 0; j < strlen(placeholder_arr[i].input); j++)
+                placeholder_arr[i].input[j] = '\0';
+            placeholder_arr[i].next_input = 0;
+        }
+
         return;
     }
 
@@ -163,11 +185,26 @@ void AddProfileInfo()
     {
         if(placeholder_arr[3].input[i] == ',')
         {
-            //invalid 
+            char temp[200] = "Username should not contain commas.";
+            strcpy(prompt_text, temp);
+            prompt_show = PromptNo;
+
+            for(int i = 0; i< 4; i++)
+            {
+                int j;
+                for(j = 0; j < strlen(placeholder_arr[i].input); j++)
+                    placeholder_arr[i].input[j] = '\0';
+                placeholder_arr[i].next_input = 0;
+            }
+
             return;
         }
     }
 
+    placeholder_arr[0].input[placeholder_arr[0].next_input++] = '\0';
+    placeholder_arr[1].input[placeholder_arr[1].next_input++] = '\0';
+    placeholder_arr[2].input[placeholder_arr[2].next_input++] = '\0';
+    placeholder_arr[3].input[placeholder_arr[3].next_input++] = '\0';
     
 
     strcpy(username, placeholder_arr[3].input);
@@ -516,7 +553,7 @@ void SignupPress()
     page_no = SignUpPageNo;
 }
 
-void Prompt()
+void Prompt()  //text should be lowercase otherwise the width needs to be adjusted.
 {
     Vector origin = {550, 300}, dimension = {0, 0};
     int char_per_line = 40, vetical_padding = 10, side_padding = 20;
@@ -526,7 +563,7 @@ void Prompt()
     dimension.x = side_padding*2 + small_font*char_per_line;
 
     
-    ChangeColor(white);
+    ChangeColor(light_yellow);
     iFilledRectangle(origin.x, origin.y, dimension.x, dimension.y);
 
     Vector text_origin = {origin.x + side_padding, origin.y + dimension.y - side_padding - small_font};
@@ -560,16 +597,19 @@ void Prompt()
 
 void PromptPress()
 {
-    if(prompt_text[0] = 'G')
+
+/*     dbg(prompt_text); */
+    if(prompt_text[0] == 'G')
     {
+ /*        dbg(prompt_text[0]); */
         XPress();
     }
-    else if(prompt_text[0] = 'N')  //logged in
+    else if(prompt_text[0] == 'N')  //logged in
     {
 
     }
 
-    else if(prompt_text[0] = 'S')  //invalid username or password
+    else if(prompt_text[0] == 'S')  //invalid username or password
     {
 
     }
@@ -687,6 +727,7 @@ void BackPress2()
 void XPress()
 {
         page_no = HomePageNo;
+        /* dbg(page_no); */
         iPauseTimer(0);
         pause = 0;
         Init = 1;
@@ -789,16 +830,6 @@ void SettingsPage()
     ChangeColor(yellow1);
     iText(home_origin.x + padding, home_origin.y + 11*padding, "BACKGROUND SOUND:", GLUT_BITMAP_HELVETICA_18);
 
-/*     ChangeColor(white);
-    double centre_on = home_origin.x + 3*padding, centre_of = home_origin.x + home_dimension.x - 3*padding;
-    iFilledCircle(centre_on, home_origin.y + 11*padding, 20);
-    iFilledCircle(centre_of, home_origin.y + 11*padding, 20);
-
-    ChangeColor(black);
-    if(sound_is_on)
-        iFilledRectangle(centre_on, home_origin.y + 11*padding, 15);
-    else
-        iFilledRectangle(centre_of, home_origin.y + 11*padding, 15); */
 
     ChangeColor(white);
     iFilledRectangle(home_origin.x + 2*padding, home_origin.y + 10*padding, 30, 30);
@@ -850,4 +881,46 @@ void SettingsPage()
 void SettingsPress()
 {
     page_no = SettingsPageNo;
+}
+
+
+void ProfilePress()
+{
+    page_no = ProfilePageNo;
+}
+
+void ProfilePage()
+{
+    iShowBMP(0, 0, "images/blur_bg2.bmp");
+
+    ChangeColor(black);
+    iFilledRectangle(home_origin.x, home_origin.y, home_dimension.x, home_dimension.y);
+
+    iShowBMP(home_origin.x, home_origin.y + 600, "images\\profile_title.bmp");
+
+    int vert_padding = 30;
+    char user[300] = "USERNAME:  ";
+    char first_name[300] = "FIRST:  ";
+    char last_name[300] = "LAST:  ";
+    char pass[300] = "PASSWORD: ";
+
+    GetProfileInfo();
+    loggedin_profile = UsernameMatch(placeholder_arr[0].input);
+   
+
+    strcat(user, profile_data[loggedin_profile]);
+    strcat(first_name, profile_data[loggedin_profile+1]);
+    strcat(last_name, profile_data[loggedin_profile+2]);
+    strcat(pass, profile_data[loggedin_profile+3]);
+
+    ChangeColor(blue1);
+    iText(home_origin.x + 2*vert_padding, home_origin.y + 16*vert_padding, user, GLUT_BITMAP_HELVETICA_18);
+    iText(home_origin.x + 2*vert_padding, home_origin.y + 14*vert_padding, first_name, GLUT_BITMAP_HELVETICA_18);
+    iText(home_origin.x + 2*vert_padding, home_origin.y + 12*vert_padding, last_name, GLUT_BITMAP_HELVETICA_18);
+    iText(home_origin.x + 2*vert_padding, home_origin.y + 10*vert_padding, pass, GLUT_BITMAP_HELVETICA_18);
+
+    button_arr[24].origin.x = home_origin.x + (home_dimension.x - button_arr[24].dimension.x)/2;
+    ButtonDraw(button_arr[24], blue1);
+
+
 }

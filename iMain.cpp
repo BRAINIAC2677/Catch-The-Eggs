@@ -42,6 +42,7 @@ char leaderboard_file[50] = "leaderboard_short.txt";
 #define LeaderboardNo 7
 #define HelpPageNo 8
 #define SettingsPageNo 9
+#define ProfilePageNo 10
 #define PromptNo -1
 
 
@@ -93,6 +94,8 @@ void iDraw()
 		HelpPage();
 	else if(page_no == SettingsPageNo)
 		SettingsPage();
+	else if(page_no == ProfilePageNo)
+		ProfilePage();
 
 	if(prompt_show == PromptNo)
 		Prompt();
