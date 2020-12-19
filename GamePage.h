@@ -214,8 +214,8 @@ flock flock_arr[] = {{AddVector(game_origin, {0, 500}),{game_dimension.x, 3},whi
 int flock_arr_size = 2;
 
 //basket initialization
-basket basket_arr[] = {{{115, 60},"images/basket10.bmp"},
-{{180, 161}, "images/basket11.bmp"}};
+basket basket_arr[] = {{{110, 60},"images/basket_1.bmp"},
+{{160, 90}, "images/basket_2.bmp"}};
 
 //bg_images
 char game_bg[50] = "images\\a.bmp";
@@ -257,18 +257,54 @@ void GamePage()
         {
             //start time for both eggs and shit should be same
             GenerateRandom(flock_arr[j].white.egg_lay, 2, end, flock_arr[j].white.no_of_egg, -1);            
-            GenerateRandom(flock_arr[j].white.shit_lay, 2, end, flock_arr[j].white.no_of_egg/2, j*10);         
+            GenerateRandom(flock_arr[j].white.shit_lay, 2, end, flock_arr[j].white.no_of_egg/2, j*10);
 
+/*             for(int i = 0; i< flock_arr[j].white.no_of_egg; i++)
+            {
+                dbg(i);
+                dbg(flock_arr[j].white.egg_lay[i]);
+            }         
+ */
             GenerateRandom(flock_arr[j].blue.egg_lay, 2, end, flock_arr[j].blue.no_of_egg, -1);
             GenerateRandom(flock_arr[j].blue.shit_lay, 2, end, flock_arr[j].blue.no_of_egg/2, j*10 + 1);
 
+/*             for(int i = 0; i< flock_arr[j].blue.no_of_egg; i++)
+            {
+                dbg(i);
+                dbg(flock_arr[j].blue.egg_lay[i]);
+
+            }   */                
             GenerateRandom(flock_arr[j].golden.egg_lay, 2, end, flock_arr[j].golden.no_of_egg, -1);
             GenerateRandom(flock_arr[j].golden.shit_lay, 2, end, flock_arr[j].golden.no_of_egg/2, j*10 + 2);
+/*             
+            for(int i = 0; i< flock_arr[j].golden.no_of_egg; i++)
+            {
+                dbg(i);
+                dbg(flock_arr[j].golden.egg_lay[i]);
+            }   */                
         }
 
         GenerateRandom(basket_speed_perks_arr, 2, end, basket_speed_no_of_perks, -1);
+
+/*         for(int i = 0; i< basket_speed_no_of_perks; i++)
+        {
+            dbg(i);
+            dbg(basket_speed_perks_arr[i]);
+        } */
+
         GenerateRandom(basket_size_perks_arr, 2, end, basket_size_no_of_perks, -1);
+/*         for(int i = 0; i< basket_size_no_of_perks; i++)
+        {
+            dbg(i);
+            dbg(basket_size_perks_arr[i]);
+        } */
+
         GenerateRandom(extra_time_perks_arr, 2, end, extra_time_no_of_perks, -1);
+/*         for(int i = 0; i< extra_time_no_of_perks; i++)
+        {
+            dbg(i);
+            dbg(extra_time_perks_arr[i]);
+        } */
     }//testing purpose
 
 
@@ -324,6 +360,8 @@ void CloudAnimation(cloud *c)
 
 void BasketMove(int flag)
 {
+    if(pause)
+        return;
     if(flag == 1)
     {
         basket_origin = AddVector(basket_origin, basket_speed);
@@ -342,7 +380,7 @@ void BasketMove(int flag)
 
 void BasketDraw(basket jhuri)
 {
-    iShowBMP2(basket_origin.x, basket_origin.y, jhuri.filename, 0xFFFFFF);
+    iShowBMP2(basket_origin.x, basket_origin.y, jhuri.filename, 0xFCFEFC);
 }
 
 //basket rightshift
@@ -541,13 +579,14 @@ void StopwatchUpdate()
     {
         if(flock_arr[i].white.show == 1 && flock_arr[i].white.egg_lay[flock_arr[i].white.next_egg] == time_in_sec)
         {
+            /* cout<<"enter\n"; */
             flock_arr[i].white.next_egg++;
             floating_object[floating_objects_size++] = {.origin = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].white.speed,.color = flock_arr[i].white.color};            
         }
         if(flock_arr[i].white.show == 1 && flock_arr[i].white.shit_lay[flock_arr[i].white.next_shit] == time_in_sec)
         {
             flock_arr[i].white.next_shit++;
-            floating_object[floating_objects_size++] = {.origin = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].white.speed,.color = shit_color};            
+            floating_object[floating_objects_size++] = {.origin = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].white.position, {flock_arr[i].white.dimension.x/2, 0}),.dimension = {25, 22},.velocity = flock_arr[i].white.speed,.color = shit_color};            
         }
 
 
@@ -559,7 +598,7 @@ void StopwatchUpdate()
         if(flock_arr[i].blue.show == 1 && flock_arr[i].blue.shit_lay[flock_arr[i].blue.next_shit] == time_in_sec)
         {
             flock_arr[i].blue.next_shit++;
-            floating_object[floating_objects_size++] = {.origin = AddVector(flock_arr[i].blue.position, {flock_arr[i].blue.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].blue.position, {flock_arr[i].blue.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].blue.speed,.color = shit_color};            
+            floating_object[floating_objects_size++] = {.origin = AddVector(flock_arr[i].blue.position, {flock_arr[i].blue.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].blue.position, {flock_arr[i].blue.dimension.x/2, 0}),.dimension = {25, 22},.velocity = flock_arr[i].blue.speed,.color = shit_color};            
         }
 
         if(flock_arr[i].golden.show == 1 && flock_arr[i].golden.egg_lay[flock_arr[i].golden.next_egg] == time_in_sec)
@@ -570,7 +609,7 @@ void StopwatchUpdate()
         if(flock_arr[i].golden.show == 1 && flock_arr[i].golden.shit_lay[flock_arr[i].golden.next_shit] == time_in_sec)
         {
             flock_arr[i].golden.next_shit++;
-            floating_object[floating_objects_size++] = {.origin = AddVector(flock_arr[i].golden.position, {flock_arr[i].golden.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].golden.position, {flock_arr[i].golden.dimension.x/2, 0}),.dimension = {5.0, 10.0},.velocity = flock_arr[i].golden.speed,.color = shit_color};
+            floating_object[floating_objects_size++] = {.origin = AddVector(flock_arr[i].golden.position, {flock_arr[i].golden.dimension.x/2, 0}),.co_ordinate = AddVector(flock_arr[i].golden.position, {flock_arr[i].golden.dimension.x/2, 0}),.dimension = {25, 22},.velocity = flock_arr[i].golden.speed,.color = shit_color};
         }
     }
 
@@ -580,7 +619,7 @@ void StopwatchUpdate()
         if(basket_size_perks_active == 0)
         {
             int falling_X = (int)rand()%(int)game_dimension.x;
-            floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {10, 0},.velocity = {0, 0},.color = basket_size_perks_color};
+            floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {32, 29},.velocity = {0, 0},.color = basket_size_perks_color};
         }
     }
 
@@ -588,7 +627,7 @@ void StopwatchUpdate()
     {
         extra_time_next_perks++;
         int falling_X = (int)rand()%(int)game_dimension.x;
-        floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {10, 0},.velocity = {0, 0},.color = extra_time_perks_color};
+        floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {32, 31},.velocity = {0, 0},.color = extra_time_perks_color};
     }
 
     if(basket_speed_perks_arr[basket_speed_next_perks] == time_in_sec)
@@ -597,9 +636,11 @@ void StopwatchUpdate()
         if(basket_speed_perks_active == 0)
         {
             int falling_X = (int)rand()%(int)game_dimension.x;
-            floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {10, 0},.velocity = {0, 0},.color = basket_speed_perks_color};
+            floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {32, 29},.velocity = {0, 0},.color = basket_speed_perks_color};
         }
     }
+
+/*     dbg(floating_objects_size); */
 
     if(time_in_sec == basket_speed_perks_active)
     {
@@ -679,23 +720,19 @@ int ProjectileDraw(projectile* obj)
     }
     else if(obj->color == shit_color)
     {
-        ChangeColor(black);
-        iFilledCircle(obj->co_ordinate.x, obj->co_ordinate.y, obj->dimension.x, 3);
+        iShowBMP2(obj->co_ordinate.x, obj->co_ordinate.y , "images\\shit_image.bmp", 0xFFFFFF);
     }
     else if(obj->color == basket_speed_perks_color)
     {
-        ChangeColor(violet1);
-        iFilledCircle(obj->co_ordinate.x, obj->co_ordinate.y, obj->dimension.x, 5);
+        iShowBMP2(obj->co_ordinate.x, obj->co_ordinate.y, "images\\perk_1.bmp", 0xFFFFFF);
     }
     else if(obj->color == basket_size_perks_color)
     {
-        ChangeColor(red3);
-        iFilledCircle(obj->co_ordinate.x, obj->co_ordinate.y, obj->dimension.x, 5);
+        iShowBMP2(obj->co_ordinate.x, obj->co_ordinate.y, "images\\perk_3.bmp", 0xFFFFFF);
     }
     else if(obj->color == extra_time_perks_color)
     {
-        ChangeColor(blue2);
-        iFilledCircle(obj->co_ordinate.x, obj->co_ordinate.y, obj->dimension.x, 5);
+        iShowBMP2(obj->co_ordinate.x, obj->co_ordinate.y, "images\\perk_2.bmp", 0xFFFFFF);
     }
     else
     {
@@ -736,7 +773,7 @@ int FallingObjectUpdate(projectile* obj)
         }
         else if(obj->color == basket_size_perks_color)
         {
-            basket_no++;
+            basket_no = 1;
             basket_size_perks_active = stopwatch_min*60 + stopwatch_sec + 15;
         }
         else if(obj->color == extra_time_perks_color)
