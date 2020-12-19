@@ -128,12 +128,16 @@ void PausePress();
 void ResumePress();
 void BackPress2();
 void XPress();
+void HelpPage();
+void HelpPress();
+void SettingsPage();
+void SettingsPress();
 
 
 //buttons initialization
 button button_arr[] = {{AddVector(home_origin,{0, button_grid}), {100, button_height}, "EXIT", .page_no = HomePageNo, .function_pointer = ExitPress}, 
-{AddVector(home_origin,{0, 2*button_grid}), {100, button_height}, "HELP", .page_no = HomePageNo}, 
-{AddVector(home_origin,{0, 3*button_grid}), {200, button_height}, "SETTINGS", .page_no = HomePageNo}, 
+{AddVector(home_origin,{0, 2*button_grid}), {100, button_height}, "HELP", .page_no = HomePageNo, .function_pointer = HelpPress}, 
+{AddVector(home_origin,{0, 3*button_grid}), {200, button_height}, "SETTINGS", .page_no = HomePageNo, .function_pointer = SettingsPress}, 
 {AddVector(home_origin,{0, 4*button_grid}), {250, button_height}, "LEADERBOARD", .page_no = HomePageNo, .function_pointer = LeaderboardPress}, 
 {AddVector(home_origin,{0, 5*button_grid}), {200, button_height}, "PROFILE", .page_no = HomePageNo}, 
 {AddVector(home_origin,{0, 6*button_grid}), {200, button_height}, "START", .page_no = HomePageNo, .function_pointer = StartPress}, 
@@ -152,7 +156,9 @@ button button_arr[] = {{AddVector(home_origin,{0, button_grid}), {100, button_he
 {{game_origin.x-130, scoreboard_Y - 1*(button_height + 30)}, {100, button_height}, "PAUSE", .page_no = GamePageNo, .function_pointer = PausePress},
 {{game_origin.x-130, scoreboard_Y - 2*(button_height + 30)}, {100, button_height}, "RESUME", .page_no = GamePageNo, .function_pointer = ResumePress},
 {{game_origin.x-130, scoreboard_Y - 3*(button_height + 30)}, {100, button_height}, "BACK", .page_no = GamePageNo, .function_pointer = BackPress2},
-{{game_origin.x-130, scoreboard_Y - 4*(button_height + 30)}, {button_height, button_height}, "X", .page_no = GamePageNo, .function_pointer = XPress}};
+{{game_origin.x-130, scoreboard_Y - 4*(button_height + 30)}, {button_height, button_height}, "X", .page_no = GamePageNo, .function_pointer = XPress},
+{{750, 80}, {150, button_height-10}, "BACK", .page_no = HelpPageNo, .function_pointer = BackPress1}, 
+{AddVector(home_origin,{0, 2*button_grid}), {150, button_height-10}, "BACK", .page_no = SettingsPageNo, .function_pointer = BackPress1}};
 
 /* int basket_len[2] = {125, 180};
 char* baskets[2] = {"images/basket1.bmp", "images/basket2.bmp"}; */
@@ -801,7 +807,7 @@ void GetTopperInfo()
 
     FILE *fp = NULL;
 
-    if((fp = fopen("leaderboard.txt", "r")) == NULL)
+    if((fp = fopen(leaderboard_file, "r")) == NULL)
     {
         printf("Error Opening file.\n");
         return;
@@ -818,7 +824,7 @@ void GetTopperInfo()
             if(temp[i] == ',')
                 break;
             toppers[top_nxt][i] = temp[i];
-        }
+        }e
 
         toppers[top_nxt][i] = '\0';
         i++;
@@ -868,7 +874,7 @@ void WriteTopperInfo()
         return;
     
     FILE *fp = NULL;
-    if((fp = fopen("leaderboard.txt", "w")) == NULL)
+    if((fp = fopen(leaderboard_file, "w")) == NULL)
     {
         printf("Error opening file in WriteTopperInfo.\n");
         return;

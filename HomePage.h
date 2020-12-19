@@ -588,6 +588,10 @@ void LeaderboardDraw()
 
     if(current_time_slot == 0)
             iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 120, "images\\leaderboard_short.bmp");
+    else if(current_time_slot == 1)
+            iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 120, "images\\leaderboard_mid.bmp");
+    else if(current_time_slot == 2)
+            iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 120, "images\\leaderboard_long.bmp");
 
     int vertical_padding = 50;
     Vector grid_one_origin = AddVector(home_origin, {0, home_dimension.y - 3*vertical_padding});
@@ -689,6 +693,161 @@ void XPress()
         floating_objects_size = 0;
         stopwatch_sec = stopwatch_min = 0;
         white_egg_cnt = blue_egg_cnt = golden_egg_cnt = shit_cnt = score = 0;
+
+        for(int j = 0; j < flock_arr_size; j++)
+        {
+
+/*             for(int i = 0; i< flock_arr[j].white.no_of_egg; i++)
+            {
+                flock_arr[j].white.egg_lay[i] = 0;
+            }  
+
+            for(int i = 0; i< flock_arr[j].white.no_of_egg/2; i++)
+            {
+                flock_arr[j].white.shit_lay[i] = 0;
+            }         
+
+
+            for(int i = 0; i< flock_arr[j].blue.no_of_egg; i++)
+            {
+                flock_arr[j].blue.egg_lay[i] = 0;
+            } 
+
+            for(int i = 0; i< flock_arr[j].blue.no_of_egg/2; i++)
+            {
+                flock_arr[j].blue.shit_lay[i] = 0;
+            }                  
+            
+            for(int i = 0; i< flock_arr[j].golden.no_of_egg; i++)
+            {
+                flock_arr[j].golden.egg_lay[i] = 0;
+            } 
+
+            for(int i = 0; i< flock_arr[j].golden.no_of_egg/2; i++)
+            {
+                flock_arr[j].golden.shit_lay[i] = 0;
+            }   */    
+
+
+
+            flock_arr[j].golden.next_egg = 0;
+            flock_arr[j].blue.next_egg = 0;
+            flock_arr[j].white.next_egg = 0; 
+
+            flock_arr[j].golden.next_shit = 0;
+            flock_arr[j].blue.next_shit = 0;
+            flock_arr[j].white.next_shit = 0;            
+        }
+
+        
+/* 
+        for(int i = 0; i< basket_speed_no_of_perks; i++)
+        {
+            basket_speed_perks_arr[i] = 0;
+        }
+
+       
+        for(int i = 0; i< basket_size_no_of_perks; i++)
+        {
+            basket_size_perks_arr[i] = 0;
+        }
+
+        for(int i = 0; i< extra_time_no_of_perks; i++)
+        {
+            extra_time_perks_arr[i] = 0;
+        } */
+
+        basket_size_next_perks = basket_speed_next_perks = extra_time_next_perks = 0;
+        basket_no = 0;
+        
         if(sound_is_on)
             PlaySound(NULL, NULL, 0);
+}
+
+
+void HelpPage()
+{
+    iShowBMP(0, 0, "images\\help.bmp");
+    ButtonDraw(button_arr[22], blue1);
+}
+
+void HelpPress()
+{
+    page_no = HelpPageNo;
+}
+
+void SettingsPage()
+{
+    iShowBMP(0, 0, "images/blur_bg2.bmp");
+
+    ChangeColor(black);
+    iFilledRectangle(home_origin.x, home_origin.y, home_dimension.x, home_dimension.y);
+
+    int padding = 50;
+    iShowBMP(home_origin.x, home_origin.y + 12*padding, "images\\settings_title.bmp");
+
+    ChangeColor(yellow1);
+    iText(home_origin.x + padding, home_origin.y + 11*padding, "BACKGROUND SOUND:", GLUT_BITMAP_HELVETICA_18);
+
+/*     ChangeColor(white);
+    double centre_on = home_origin.x + 3*padding, centre_of = home_origin.x + home_dimension.x - 3*padding;
+    iFilledCircle(centre_on, home_origin.y + 11*padding, 20);
+    iFilledCircle(centre_of, home_origin.y + 11*padding, 20);
+
+    ChangeColor(black);
+    if(sound_is_on)
+        iFilledRectangle(centre_on, home_origin.y + 11*padding, 15);
+    else
+        iFilledRectangle(centre_of, home_origin.y + 11*padding, 15); */
+
+    ChangeColor(white);
+    iFilledRectangle(home_origin.x + 2*padding, home_origin.y + 10*padding, 30, 30);
+    iFilledRectangle(home_origin.x + home_dimension.x - 2*padding - 30, home_origin.y + 10*padding, 30, 30);
+    
+    ChangeColor(red1);
+    iRectangle(home_origin.x + 2*padding + 5, home_origin.y + 10*padding + 5, 20, 20);
+    iRectangle(home_origin.x + home_dimension.x - 2*padding - 30 + 5, home_origin.y + 10*padding + 5, 20, 20);
+
+    if(sound_is_on)
+        iFilledRectangle(home_origin.x + 2*padding + 5, home_origin.y + 10*padding + 5, 20, 20);
+    else
+        iFilledRectangle(home_origin.x + home_dimension.x - 2*padding - 30 + 5, home_origin.y + 10*padding + 5, 20, 20);
+    
+    
+    ChangeColor(yellow1);
+    iText(600, home_origin.y + 9*padding,"ON", GLUT_BITMAP_HELVETICA_18);
+    iText(915, home_origin.y + 9*padding, "OFF", GLUT_BITMAP_HELVETICA_18);
+
+
+    ChangeColor(yellow1);
+    iText(home_origin.x + padding, home_origin.y + 8*padding, "GAME DURATION:", GLUT_BITMAP_HELVETICA_18);
+    
+    ChangeColor(white);
+    iFilledRectangle(home_origin.x + 70,home_origin.y + 7*padding, 30, 30);
+    iFilledRectangle(home_origin.x + 260, home_origin.y + 7*padding, 30, 30);
+    iFilledRectangle(home_origin.x + 450, home_origin.y + 7*padding, 30, 30);
+    
+    ChangeColor(red1);
+    iRectangle(home_origin.x + 70 + 5,home_origin.y + 7*padding + 5, 20, 20);
+    iRectangle(home_origin.x + 260 + 5, home_origin.y + 7*padding + 5, 20, 20);
+    iRectangle(home_origin.x + 450 + 5, home_origin.y + 7*padding + 5, 20, 20);
+
+    if(current_time_slot == 0)
+        iFilledRectangle(home_origin.x + 70 + 5,home_origin.y + 7*padding + 5, 20, 20);
+    else if(current_time_slot == 1)
+        iFilledRectangle(home_origin.x + 260 + 5, home_origin.y + 7*padding + 5, 20, 20);
+    else if(current_time_slot == 2)
+        iFilledRectangle(home_origin.x + 450 + 5, home_origin.y + 7*padding + 5, 20, 20);
+
+    iShowBMP(home_origin.x, home_origin.y + 5*padding, "images\\time_des.bmp");
+
+
+    button_arr[23].origin.x = home_origin.x + (home_dimension.x - button_arr[23].dimension.x)/2;
+    ButtonDraw(button_arr[23], yellow1);
+
+}
+
+void SettingsPress()
+{
+    page_no = SettingsPageNo;
 }

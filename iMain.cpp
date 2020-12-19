@@ -26,6 +26,7 @@ int page_no = 6, prompt_show = 0, pause = 0, sound_is_on = 1;
 int screen_width = 1550, screen_height = 800;
 int chicken_speed[] = {3, 5, 7};
 int current_time_slot = 0;
+char leaderboard_file[50] = "leaderboard_short.txt";
 
 
 
@@ -39,6 +40,8 @@ int current_time_slot = 0;
 #define LevelPageNo 5
 #define IntroNo 6
 #define LeaderboardNo 7
+#define HelpPageNo 8
+#define SettingsPageNo 9
 #define PromptNo -1
 
 
@@ -86,6 +89,10 @@ void iDraw()
 		Intro();
 	else if(page_no == LeaderboardNo)
 		LeaderboardDraw();
+	else if(page_no == HelpPageNo)
+		HelpPage();
+	else if(page_no == SettingsPageNo)
+		SettingsPage();
 
 	if(prompt_show == PromptNo)
 		Prompt();
@@ -99,10 +106,23 @@ void iDraw()
 	function iMouseMove() is called when the user presses and drags the mouse.
 	(mx, my) is the position where the mouse pointer is.
 */
+int prev_mx = 0, prev_my = 0;
+
 void iMouseMove(int mx, int my)
 {
     //printf("x = %d, y= %d\n",mx,my);
     //place your codes here
+
+	if(page_no == GamePageNo && mx >= game_origin.x && mx <= game_origin.x + game_dimension.x && my >= game_origin.y && my <= game_origin.y + game_dimension.y)
+	{
+		if(mx < prev_mx)
+			BasketMove(-1);
+		else if(mx > prev_mx)
+			BasketMove(1);
+	}
+
+	prev_mx = mx;
+	prev_my = my;
 }
 
 /*
@@ -141,6 +161,30 @@ void iMouse(int button, int state, int mx, int my)
 					break;
 				}
 			}			
+		}
+
+		if(page_no == SettingsPageNo)
+		{
+			if(mx >= 605 && mx <= 605 + 20 && my >= 505 && my <= 505 + 20)
+				sound_is_on = 1;
+			else if(mx >= 925 && mx <= 925 + 20 && my >= 505 && my <= 505 + 20)
+				sound_is_on = 0;
+			
+			else if(mx >= 575 && mx <= 575 + 20 && my >= 355 && my <= 355+20)
+			{
+				current_time_slot = 0;
+				strcpy(leaderboard_file,"images\\leaderboard_short.bmp");
+			}
+			else if(mx >= 765 && mx <= 765 + 20 && my >= 355 && my <= 355+20)
+			{
+				current_time_slot = 1;
+				strcpy(leaderboard_file,"images\\leaderboard_mid.bmp");
+			}
+			else if(mx >= 955 && mx <= 955 + 20 && my >= 355 && my <= 355+20)
+			{
+				current_time_slot = 2;
+				strcpy(leaderboard_file,"images\\leaderboard_long.bmp");				
+			}
 		}
 	}
 }
