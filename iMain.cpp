@@ -136,11 +136,11 @@ void iMouse(int button, int state, int mx, int my)
 {
 	if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
-		if(page_no == GamePageNo)
+/* 		if(page_no == GamePageNo)
 		{
 			RightShift(mx, my);
 			LeftShift(mx, my);
-		}
+		} */
 
 		for(int i = 0; i< sizeof(placeholder_arr)/sizeof(placeholder_arr[0]); i++)
 		{
@@ -169,24 +169,30 @@ void iMouse(int button, int state, int mx, int my)
 		if(page_no == SettingsPageNo)
 		{
 			if(mx >= 605 && mx <= 605 + 20 && my >= 505 && my <= 505 + 20)
+			{
 				sound_is_on = 1;
+				PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP | SND_ASYNC);
+			}
 			else if(mx >= 925 && mx <= 925 + 20 && my >= 505 && my <= 505 + 20)
+			{
 				sound_is_on = 0;
+				PlaySound(NULL, NULL, 0);
+			}
 			
 			else if(mx >= 575 && mx <= 575 + 20 && my >= 355 && my <= 355+20)
 			{
 				current_time_slot = 0;
-				strcpy(leaderboard_file,"images\\leaderboard_short.bmp");
+				strcpy(leaderboard_file,"leaderboard_short.txt");
 			}
 			else if(mx >= 765 && mx <= 765 + 20 && my >= 355 && my <= 355+20)
 			{
 				current_time_slot = 1;
-				strcpy(leaderboard_file,"images\\leaderboard_mid.bmp");
+				strcpy(leaderboard_file,"leaderboard_mid.txt");
 			}
 			else if(mx >= 955 && mx <= 955 + 20 && my >= 355 && my <= 355+20)
 			{
 				current_time_slot = 2;
-				strcpy(leaderboard_file,"images\\leaderboard_long.bmp");				
+				strcpy(leaderboard_file,"leaderboard_long.txt");				
 			}
 		}
 	}
@@ -265,6 +271,8 @@ void Introcng()
 {
 	page_no = LoginPageNo;
 	iPauseTimer(1);
+	if(sound_is_on)
+		PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP | SND_ASYNC);
 }
 
 int main()

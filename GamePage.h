@@ -80,14 +80,13 @@ Vector game_origin = {400, 50}, game_dimension = {1100, 720};
 int ground_height = 50;
 Vector basket_origin = AddVector(game_origin, {game_dimension.x/2, 0}), basket_speed = {15, 0};
 int basket_no = 0;  
-Vector right_button_origin = SubVector(game_origin, {60, 0});
-Vector left_button_origin = SubVector(game_origin, {120, -2});
+
 int scoreboard_X = 70, scoreboard_Y = 400, scoreboard_dx = 300, scoreboard_dy = 370;
 int score = 0,target_score = 300;
 int white_egg_cnt = 0, blue_egg_cnt = 0, golden_egg_cnt = 0, shit_cnt = 0;
 int white_egg_point = 5, blue_egg_point = 10, golden_egg_point = 20, shit_point = 5;
 int stopwatch_min = 0, stopwatch_sec = 0, stopwatch_end_min = 1, stopwatch_end_sec = 0;
-Vector net_accleration = {0, -.1};
+Vector net_accleration = {0, -.11};
 
 //variables from homepage
 Vector home_origin = {500, 0}, home_dimension = {550, screen_height};
@@ -155,10 +154,10 @@ button button_arr[] = {{AddVector(home_origin,{0, button_grid}), {100, button_he
 {AddVector(home_origin,{0, 6*button_grid}), {250, button_height-10}, "LEVEL 1", .page_no = LevelPageNo, .function_pointer = LevelOne},
 {.dimension = {150, button_height-15}, .str = "Ok", .page_no = -1, .function_pointer = PromptPress},
 {AddVector(home_origin,{0, button_grid - 20}), {150, button_height-10}, "BACK", .page_no = LeaderboardNo, .function_pointer = BackPress1},
-{{game_origin.x-130, scoreboard_Y - 1*(button_height + 30)}, {100, button_height}, "PAUSE", .page_no = GamePageNo, .function_pointer = PausePress},
-{{game_origin.x-130, scoreboard_Y - 2*(button_height + 30)}, {100, button_height}, "RESUME", .page_no = GamePageNo, .function_pointer = ResumePress},
-{{game_origin.x-130, scoreboard_Y - 3*(button_height + 30)}, {100, button_height}, "BACK", .page_no = GamePageNo, .function_pointer = BackPress2},
-{{game_origin.x-130, scoreboard_Y - 4*(button_height + 30)}, {button_height, button_height}, "X", .page_no = GamePageNo, .function_pointer = XPress},
+{{scoreboard_X + 30, scoreboard_Y - 1*(button_height + 60)}, {100, button_height}, "PAUSE", .page_no = GamePageNo, .function_pointer = PausePress},
+{{scoreboard_X + scoreboard_dx - 100 - 30, scoreboard_Y - 1*(button_height + 60)}, {100, button_height}, "RESUME", .page_no = GamePageNo, .function_pointer = ResumePress},
+{{scoreboard_X + 30, scoreboard_Y - 2*(button_height + 30) - 30}, {100, button_height}, "BACK", .page_no = GamePageNo, .function_pointer = BackPress2},
+{{scoreboard_X + 30, scoreboard_Y - 3*(button_height + 30) - 30}, {button_height, button_height}, "X", .page_no = GamePageNo, .function_pointer = XPress},
 {{750, 80}, {150, button_height-10}, "BACK", .page_no = HelpPageNo, .function_pointer = BackPress1}, 
 {AddVector(home_origin,{0, 2*button_grid}), {150, button_height-10}, "BACK", .page_no = SettingsPageNo, .function_pointer = BackPress1},
 {AddVector(home_origin,{0, 2*button_grid}), {150, button_height-10}, "BACK", .page_no = ProfilePageNo, .function_pointer = BackPress1}};
@@ -230,6 +229,10 @@ basket basket_arr[] = {{{110, 60},"images/basket_1.bmp"},
 //bg_images
 char game_bg[50] = "images\\a.bmp";
 
+//wind array
+int wind_arr[50], next_wind = 0, wind_act_time = 0;
+Vector retardation;
+
 
 
 //function prototypes
@@ -241,8 +244,10 @@ void LeftShift(int mx, int my);
 void ChickenDraw(chicken* chick);
 void FlockDraw(flock* fk);
 void GenerateRandom(int arr[], int start, int end, int no_of_rand, int chick_detect);
+void GenerateRandomWithGap(int arr[], int start, int end, int no_of_rand, int gap);
 void ChangeColor(rgb color);
 void ScoreBoardDraw();
+void ButtonBoardDraw();
 void StopwatchUpdate();
 void PopFrontEgg(projectile arr[], int* size);
 void FloatingObjDraw();
@@ -258,7 +263,7 @@ int Init = 1; //test
 
 void GamePage()
 {
-    iShowBMP(0, 0, "images/blur_bg1.bmp");
+    iShowBMP(0, 0, "images/blur_bg2.bmp");
     if(Init)
     {
         Init = 0;
@@ -315,6 +320,17 @@ void GamePage()
             dbg(i);
             dbg(extra_time_perks_arr[i]);
         } */
+
+
+        int no_of_winds;
+        if(current_time_slot == 0)
+            no_of_winds = 6;
+        else if(current_time_slot == 1)
+            no_of_winds = 8;
+        else 
+            no_of_winds = 10;
+        
+        GenerateRandomWithGap(wind_arr, 2, end, no_of_winds, 10);
     }//testing purpose
 
 
@@ -328,8 +344,7 @@ void GamePage()
 
 	BasketDraw(basket_arr[basket_no]);
 
-    iShowBMP2(left_button_origin.x, left_button_origin.y, "images/left-arrow.bmp", 0xFFFFFF);
-    iShowBMP2(right_button_origin.x, right_button_origin.y, "images/right-arrow.bmp", 0xFFFFFF);
+
 
     ScoreBoardDraw();
 	 
@@ -352,11 +367,28 @@ void GamePage()
         FlockDraw(&flock_arr[i]);
     }
 
+    
+    ButtonBoardDraw();
+ 
+}
+
+void ButtonBoardDraw()
+{
+    ChangeColor(black);
+    iFilledRectangle(scoreboard_X, game_origin.y, scoreboard_dx, scoreboard_dy-50);
+
     for(int i = 18; i< 22; i++)
     {
-        ButtonDraw(button_arr[i], red3);
+        ButtonDraw(button_arr[i], red1);
     }
- 
+
+    if(stopwatch_end_sec)
+        iShowBMP2(240, 240, "images\\perk_2.bmp", 0xFFFFFF);
+    if(basket_speed_perks_active)
+        iShowBMP2(240, 190, "images\\perk_1.bmp", 0xFFFFFF);
+    if(basket_size_perks_active)
+        iShowBMP2(240, 140, "images\\perk_3.bmp", 0xFFFFFF);
+
 }
 
 void CloudAnimation(cloud *c)
@@ -394,18 +426,18 @@ void BasketDraw(basket jhuri)
 }
 
 //basket rightshift
-void RightShift(int mx, int my)
+/* void RightShift(int mx, int my)
 {
     if(mx >= right_button_origin.x && mx <= right_button_origin.x + 50 && my >= right_button_origin.y && my <= right_button_origin.y + 50)
         BasketMove(1);
-}
+} */
 
 //basket leftshift
-void LeftShift(int mx, int my)
+/* void LeftShift(int mx, int my)
 {
     if(mx >= left_button_origin.x && mx <= left_button_origin.x + 50 && my >= left_button_origin.y && my <= left_button_origin.y + 50)
         BasketMove(-1);
-}
+} */
 
 void ChickenDraw(chicken* chick)
 {
@@ -514,6 +546,43 @@ void GenerateRandom(int arr[], int start, int end, int no_of_rand, int chick_det
 
 }
 
+//generate random number among which the difference is at least the gap parameter given in the function
+void GenerateRandomWithGap(int arr[], int start, int end, int no_of_rand, int gap)
+{
+    arr[no_of_rand] = -1; 
+    int check_duplicate[end-start+gap+10] = {0};
+
+    for(int i = 0; i< no_of_rand; i++)
+    {
+        int random = (int)rand()%(end - start+1);
+        while(check_duplicate[random])
+            random = (int)rand()%(end - start+1);
+
+        for(int i = 0; i<= gap; i++)
+        {
+            check_duplicate[random+i] = 1;
+            if(random-i >= 0)
+                check_duplicate[random-i] = 1;
+        }
+        arr[i] = start + random;
+    }
+
+    if(no_of_rand-1>=0)
+    {
+        for(int pos = no_of_rand - 1; pos; pos--)
+        {
+            int maxi_ind = 0;
+            for(int j = 0; j <= pos; j++)
+                if(arr[j] > arr[maxi_ind])
+                    maxi_ind = j;
+            
+            int temp = arr[maxi_ind];
+            arr[maxi_ind] = arr[pos];
+            arr[pos] = temp;
+        }
+    }
+}
+
 void ChangeColor(rgb color)
 {
     iSetColor(color.r, color.g, color.b);
@@ -562,7 +631,8 @@ void StopwatchUpdate()
     {
         iPauseTimer(0);
         pause = 1;
-        PlaySound(NULL, NULL, 0);
+        if(sound_is_on)
+            PlaySound(NULL, NULL, 0);
         TopscoreUpdate(profile_data[loggedin_profile], score);
 
         char temp[100] = "GAME OVER";
@@ -629,7 +699,7 @@ void StopwatchUpdate()
         if(basket_size_perks_active == 0)
         {
             int falling_X = (int)rand()%(int)game_dimension.x;
-            floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {32, 29},.velocity = {0, 0},.color = basket_size_perks_color};
+            floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y-29}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {32, 29},.velocity = {0, 0},.color = basket_size_perks_color};
         }
     }
 
@@ -637,7 +707,7 @@ void StopwatchUpdate()
     {
         extra_time_next_perks++;
         int falling_X = (int)rand()%(int)game_dimension.x;
-        floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {32, 31},.velocity = {0, 0},.color = extra_time_perks_color};
+        floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y - 31}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {32, 31},.velocity = {0, 0},.color = extra_time_perks_color};
     }
 
     if(basket_speed_perks_arr[basket_speed_next_perks] == time_in_sec)
@@ -646,7 +716,7 @@ void StopwatchUpdate()
         if(basket_speed_perks_active == 0)
         {
             int falling_X = (int)rand()%(int)game_dimension.x;
-            floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y}),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {32, 29},.velocity = {0, 0},.color = basket_speed_perks_color};
+            floating_object[floating_objects_size++] = {.origin = AddVector(game_origin, {falling_X, game_dimension.y - 29 }),.co_ordinate = AddVector(game_origin, {falling_X, game_dimension.y}), .dimension = {32, 29},.velocity = {0, 0},.color = basket_speed_perks_color};
         }
     }
 
@@ -663,7 +733,32 @@ void StopwatchUpdate()
         basket_size_perks_active = 0;
         basket_no--;
     }
+
+    //wind add
+
+    if(time_in_sec == wind_arr[next_wind])
+    {
+        next_wind++;
+        if(sound_is_on)
+            PlaySound(TEXT("sounds\\wind.wav"), NULL, SND_LOOP|SND_ASYNC);
+        Vector force = {0.25, 0};
+        if(next_wind&1)
+            force = {-0.25, 0};
+        net_accleration = AddVector(net_accleration, force);
+        wind_act_time = 8;
+        retardation = {-force.x/wind_act_time, 0};
+    }
+
+    if(wind_act_time)
+    {
+        wind_act_time--;
+        if(sound_is_on && !wind_act_time)
+            PlaySound(NULL, NULL, 0);
+        net_accleration = AddVector(net_accleration, retardation);
+    }
 }
+
+
 
 void PopFrontEgg(projectile arr[], int* size, int ind)
 {
@@ -767,6 +862,8 @@ int FallingObjectUpdate(projectile* obj)
     //entering basket
     if(obj->co_ordinate.x >= basket_origin.x && obj->co_ordinate.x <= basket_origin.x + basket_arr[basket_no].dimension.x && prev_Y >= basket_origin.y + basket_arr[basket_no].dimension.y && obj->co_ordinate.y <= basket_origin.y + basket_arr[basket_no].dimension.y)
     {
+/*         if(sound_is_on && !wind_act_time)
+            PlaySound(TEXT("sounds\\yeah.wav"), NULL, SND_LOOP|SND_ASYNC); */
         ret = 1;
         if(obj->color == 0)
             white_egg_cnt++;
@@ -798,7 +895,7 @@ int FallingObjectUpdate(projectile* obj)
         ret = 1;
     }
     //collision with sidewall
-    else if(obj->co_ordinate.x <= game_origin.x || obj->co_ordinate.x >= game_origin.x + game_dimension.x)
+    else if(obj->co_ordinate.x <= game_origin.x || obj->co_ordinate.x >= game_origin.x + game_dimension.x - obj->dimension.x)
         obj->velocity.x*= -1;
 
     return ret;
@@ -819,7 +916,7 @@ void GetTopperInfo()
 
     char temp[50];
     top_nxt = 0;
-    while (fscanf(fp, "%[^\n]%*c", temp) != EOF)
+    while (fscanf(fp, "%s", temp) != EOF)
     {
         char s_temp[10];
         int i = 0;

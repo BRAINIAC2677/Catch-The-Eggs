@@ -19,9 +19,9 @@ typedef struct
 } time_slot;
 
 //time slot initialization
-time_slot time_slot_arr[] = {{1, 0, {100, 300, 500, 700, 1000}, {{20, 0, 0}, {20, 15, 0}, {20, 15, 10}, {20, 15, 0},{20, 15, 0},{20, 15, 10},{20, 15, 10}}},
-{2, 0, {300, 500, 700, 1000, 1300}, {{20, 0, 0}, {20, 15, 0}, {20, 15, 10}, {20, 15, 0},{20, 15, 0},{20, 15, 10},{20, 15, 10}}},
-{3, 0, {500, 700, 1000, 1300, 1500}, {{20, 0, 0}, {20, 15, 0}, {20, 15, 10}, {20, 15, 0},{20, 15, 0},{20, 15, 10},{20, 15, 10}}}};
+time_slot time_slot_arr[] = {{1, 0, {100, 300, 500, 700, 1000}, {{25, 0, 0}, {25, 20, 0}, {20, 15, 10}, {20, 15, 0},{20, 15, 0},{20, 15, 10},{20, 15, 10}}},
+{2, 0, {300, 500, 700, 1000, 1300}, {{25, 0, 0}, {25, 20, 0}, {20, 15, 10}, {20, 15, 0},{20, 15, 0},{20, 15, 10},{20, 15, 10}}},
+{3, 0, {500, 700, 1000, 1300, 1500}, {{25, 0, 0}, {25, 20, 0}, {20, 15, 10}, {20, 15, 0},{20, 15, 0},{20, 15, 10},{20, 15, 10}}}};
 
 
 
@@ -183,9 +183,30 @@ void AddProfileInfo()
 
     for(int i = 0; i< strlen(placeholder_arr[3].input); i++)
     {
-        if(placeholder_arr[3].input[i] == ',')
+        if(placeholder_arr[3].input[i] == ',' ||placeholder_arr[3].input[i] == ' ' )
         {
-            char temp[200] = "Username should not contain commas.";
+            char temp[200] = "Username and password should not contain commas or spaces.";
+            strcpy(prompt_text, temp);
+            prompt_show = PromptNo;
+
+            for(int i = 0; i< 4; i++)
+            {
+                int j;
+                for(j = 0; j < strlen(placeholder_arr[i].input); j++)
+                    placeholder_arr[i].input[j] = '\0';
+                placeholder_arr[i].next_input = 0;
+            }
+
+            return;
+        }
+    }
+
+
+    for(int i = 0; i< strlen(placeholder_arr[0].input); i++)
+    {
+        if(placeholder_arr[0].input[i] == ',' ||placeholder_arr[3].input[i] == ' ' )
+        {
+            char temp[200] = "Username and password should not contain commas or spaces.";
             strcpy(prompt_text, temp);
             prompt_show = PromptNo;
 
@@ -207,10 +228,13 @@ void AddProfileInfo()
     placeholder_arr[3].input[placeholder_arr[3].next_input++] = '\0';
     
 
+ 
+
     strcpy(username, placeholder_arr[3].input);
     strcpy(first_name, placeholder_arr[2].input);
     strcpy(last_name, placeholder_arr[1].input);
     strcpy(password, placeholder_arr[0].input);
+
 
     FILE* fp = NULL;
     if((fp = fopen("profile.txt", "ab")) == NULL)
@@ -258,6 +282,8 @@ void AddProfileInfo()
     }
 
     fclose(fp);
+
+
 
     page_no = HomePageNo;
 }
@@ -334,6 +360,8 @@ void GetProfileInfo()
 
         ret_password[str_sizes[3]] = '\0';
 
+
+
         strcpy(profile_data[next_profile_data++],ret_username);
         strcpy(profile_data[next_profile_data++],ret_first_name);
         strcpy(profile_data[next_profile_data++],ret_last_name);
@@ -352,6 +380,7 @@ int UsernameMatch(char *user_name)
 
     for(int i = 0; i< next_profile_data; i+=4)
     {
+
         if(strcmp(profile_data[i], user_name))
             continue;
         res = i;
@@ -367,9 +396,10 @@ int PassMatch(char *pass)
         GetProfileInfo();
     int res = -1;
 
-    for(int i = 0; i< next_profile_data; i+=4)
-    {
-        if(strcmp(profile_data[i+3], pass))
+    for(int i = 3; i< next_profile_data; i+=4)
+    {   
+
+        if(strcmp(profile_data[i], pass))
             continue;
         res = i;
         break;
@@ -381,8 +411,8 @@ int PassMatch(char *pass)
 void ProfileAccess()
 {
     int res1 = UsernameMatch(placeholder_arr[5].input);
-    int res2 = PassMatch(placeholder_arr[4].input);
-    if(res1 != -1 && res1 == res2)
+/*     int res2 = PassMatch(placeholder_arr[4].input); */
+    if(res1 != -1 && !strcmp(placeholder_arr[4].input, profile_data[res1+3]))
     {
         loggedin_profile = res1;
         page_no = HomePageNo;
@@ -432,8 +462,10 @@ void LevelOne()
 
     strcpy(game_bg, "images\\a.bmp");
     page_no = GamePageNo;
+/*     if(sound_is_on)
+        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);   */
     if(sound_is_on)
-        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);  
+        PlaySound(NULL, NULL, 0);
     iResumeTimer(0);
     pause = 0;  
 }
@@ -453,8 +485,11 @@ void LevelTwo()
 
     strcpy(game_bg, "images\\b.bmp");
     page_no = GamePageNo;
+/*     if(sound_is_on)
+        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC); */
     if(sound_is_on)
-        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);
+        PlaySound(NULL, NULL, 0);
+
     iResumeTimer(0);
     pause = 0;
 }
@@ -475,8 +510,11 @@ void LevelThree()
 
     strcpy(game_bg, "images\\c.bmp");
     page_no = GamePageNo;
+/*     if(sound_is_on)
+        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC); */
     if(sound_is_on)
-        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);
+        PlaySound(NULL, NULL, 0);
+
     iResumeTimer(0);
     pause = 0;
 }
@@ -502,8 +540,12 @@ void LevelFour()
 
     strcpy(game_bg, "images\\d.bmp");
     page_no = GamePageNo;
+/*     if(sound_is_on)
+        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC); */
+
     if(sound_is_on)
-        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);
+        PlaySound(NULL, NULL, 0);
+
     iResumeTimer(0);
     pause = 0;
 }
@@ -531,8 +573,12 @@ void LevelFive()
 
     strcpy(game_bg, "images\\a.bmp");
     page_no = GamePageNo;
+/*     if(sound_is_on)
+        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC); */
+
     if(sound_is_on)
-        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);
+        PlaySound(NULL, NULL, 0);
+
     iResumeTimer(0);
     pause = 0;
 }
@@ -625,13 +671,15 @@ void LeaderboardDraw()
     iShowBMP(0, 0, "images/blur_bg1.bmp");
     ChangeColor(black);
     iFilledRectangle(home_origin.x, home_origin.y, home_dimension.x, home_dimension.y);
+ 
+     if(current_time_slot == 0)
+        iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 120, "images\\s.bmp");
+     if(current_time_slot == 1)
+        iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 120, "images\\m.bmp");
 
-    if(current_time_slot == 0)
-            iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 120, "images\\leaderboard_short.bmp");
-    else if(current_time_slot == 1)
-            iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 120, "images\\leaderboard_mid.bmp");
-    else if(current_time_slot == 2)
-            iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 120, "images\\leaderboard_long.bmp");
+     if(current_time_slot == 2)
+        iShowBMP(home_origin.x, home_origin.y + home_dimension.y - 120, "images\\l.bmp");
+
 
     int vertical_padding = 50;
     Vector grid_one_origin = AddVector(home_origin, {0, home_dimension.y - 3*vertical_padding});
@@ -705,8 +753,8 @@ void PausePress()
 {
     iPauseTimer(0);
     pause = 1;
-    if(sound_is_on)
-        PlaySound(NULL, NULL, 0);
+/*     if(sound_is_on)
+        PlaySound(NULL, NULL, 0); */
 }
 
 void ResumePress()
@@ -714,8 +762,8 @@ void ResumePress()
     iResumeTimer(0);
     pause = 0;
     page_no = GamePageNo;
-    if(sound_is_on)
-        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);
+/*     if(sound_is_on)
+        PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC); */
 }
 
 void BackPress2()
@@ -800,9 +848,10 @@ void XPress()
 
         basket_size_next_perks = basket_speed_next_perks = extra_time_next_perks = 0;
         basket_no = 0;
+        next_wind = 0;
         
         if(sound_is_on)
-            PlaySound(NULL, NULL, 0);
+            PlaySound(TEXT("sounds\\twinkle.wav"), NULL, SND_LOOP|SND_ASYNC);
 }
 
 
@@ -905,8 +954,11 @@ void ProfilePage()
     char pass[300] = "PASSWORD: ";
 
     GetProfileInfo();
-    loggedin_profile = UsernameMatch(placeholder_arr[0].input);
-   
+
+
+    if(loggedin_profile == -1)
+        loggedin_profile = UsernameMatch(placeholder_arr[3].input);
+    
 
     strcat(user, profile_data[loggedin_profile]);
     strcat(first_name, profile_data[loggedin_profile+1]);
